@@ -1,6 +1,4 @@
 $(document).ready(function(){
-	suppressDefaults("#contentEdit");
-	dropEvent("#contentEdit");
-	tabEnable("#contentEdit");
-	// clickCycle('.floatCycle');
+	$("#contentEdit").imgTxtHybrid();
+	// $("#contentEdit2").imgTxtHybrid();
 });
