@@ -9,20 +9,14 @@ What it does:
 
   The codebase for this function is on the img-txt-hybrid.js file in the ./js directory. 'contenteditable.html' is a working demo of the plug-in's capabilities.
 
-
-
 Usage Example/Requirements:
 
   Requirements:
-  -------------
     - jQuery 
     - jQuery-UI
 
-
-	HTML:
-	-----
-
-   <!DOCTYPE html>
+	HTML Example:
+<!--<!DOCTYPE html> -->
    <html>
    		<head>
    			<link href='./css/style.css' rel='stylesheet' type='text/css'/>
@@ -33,11 +27,12 @@ Usage Example/Requirements:
 				</script>
 				<script src="./js/img-txt-hybrid.js" type='text/javascript'></script>
 				<script>
-					  $('#editBox')
+					  $('#editBox').imgTxtHybrid();
 				</script>
    		</head>
    		<body>
-
+   			<div id='editBox'>
+   			</div>
    		</body>
    </html> 
 
