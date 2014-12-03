@@ -31,7 +31,7 @@ Usage Example/Requirements:
 				</script>
    		</head>
    		<body>
-   			<div id='editBox'>
+   			<div id='editBox' style='width:400px; height:300px; border: 1px dotted blue'>
    			</div>
    		</body>
    </html> 
