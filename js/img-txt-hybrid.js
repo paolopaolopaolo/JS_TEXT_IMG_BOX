@@ -12,16 +12,17 @@ var is_Opera = navigator.userAgent.indexOf("Presto") > -1;
 if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
 // Variable SETTING Objects:
+// (see $.fn.dropEvent)
+
 RESIZE_OBJECT_SETTINGS = {
 	'overflow': 'hidden',
 	'position':'absolute',
 	'white-space':'pre-wrap',
-	'display':'inline',
-	// 'z-index':-1000,
+	'display':'inline-block',	
 }
 
 IMG_SETTINGS = {
-	'display':'inline-block',
+	'display':'block',
 	'width': 100 + '%',
 	'height': 100 + '%',
 }
@@ -37,9 +38,9 @@ function getChildNode(currentLine, childNodes){
 		// cursor is based on the value of the line. This will
 		// not do (esp in cases of duplicate lines), and we 
 		// need another way of determining the correct line.
-    	if($.trim(currentLine) == $.trim(childNodes[i].textContent)) {
-    		return i;
-    	}
+  	if($.trim(currentLine) == $.trim(childNodes[i].textContent)) {
+  		return i;
+  	}
 	}
 	return -1
 }
@@ -56,7 +57,7 @@ $.fn.suppressDefaults = function(){
 		e.stopPropagation();
 		e.preventDefault();
 	});
-	this.on("drop", function(e){
+	this.on("dragenter", function(e){
 		e.stopPropagation();
 		e.preventDefault();
 	});
@@ -93,55 +94,68 @@ $.fn.dropEvent = function(){
 	$TARGET.on('drop', function(event) {
 		// if (!is_firefox){
 			// Prevent default drop behavior from browser
-	    	event.preventDefault();
-	    	event.stopPropagation();
-	    	// Load data transfer array and set files variable
-	    	// to the files in data array
-	    	var data = event.originalEvent.dataTransfer;
+	  	event.preventDefault();
+	  	event.stopPropagation();
+	  	// Load data transfer array and set files variable
+	  	// to the files in data array
+	  	var data = event.originalEvent.dataTransfer;
 			var files = data.files;
 
-			// For each file, create a FileReader Object
-	  		for (var i = 0; i < files.length; i++) {
-	  			var url = files[i];
-	  			var readFile = new FileReader();
-	  			
-	  			// Set onload method of FileReader object
-	  			readFile.onload = function(){
-	  				console.log('item dropped!');
-	  				// Creates div and img jQuery objects
-	  				var div = document.createElement('div');
-	  				div.setAttribute('contenteditable','false');
-	  				var img = new Image();
-	  				$div = $(div);
-	  				$img = $(img);
+			// For each file:
+  		for (var i = 0; i < files.length; i++) {
+  			// (1) Create a FileReader Object and set url
+  			var url = files[i];
+  			var readFile = new FileReader();
+  			
+  			// (2) Set onload method of FileReader
+  			// object to run the following routines:
 
-	  				// Set img src to data pointer
-	  				$img.attr({
-	  					'src': readFile.result,
-	  				});
+  			readFile.onload = function(event){
+  				// (a) Prevent default actions / propagation up the tree
+  				event.preventDefault();
+  				event.stopPropagation();
 
-	  				// Set height and width of div 
-	  				// to a quarter of the size of img
-	  				$div.css({
-	  					'width': $img[0].width/4,
-	  					'height': $img[0].height/4,
-	  				});
-	  				
-		  			// Apply object settings/ append img to div
-		
-			  		$div.objectSettings(RESIZE_OBJECT_SETTINGS);
-			  		$img.objectSettings(IMG_SETTINGS);
-			  		$div.append($img);
+  				// (b) Creates div and img jQuery objects
+  				var div = document.createElement('div');
+  				div.setAttribute('contenteditable','false');
+  				var img = new Image();
+  				$div = $(div);
+  				$img = $(img);
 
-			  		// Enable div draggable and sizeable
-			  		$div.draggable({containment:"parent"});
-			  		$div.resizable({containment:"parent"});
-			  		
-			  		// Tack div+img onto document  
-			  		$TARGET.append($div);
-	  			}
+  				// (c) Set img src to data pointer
+  				$img.attr({'src': readFile.result,});
+
+  				// (d) Set height and width of div 
+  				// to a quarter of the size of img
+	  			$div.css({
+	  				'width': $img[0].width/4,
+	  				'height': $img[0].height/4,
+	  			});
+  				
+	  			// (e) Apply object settings/ append img to div
+		  		$div.objectSettings(RESIZE_OBJECT_SETTINGS);
+		  		$img.objectSettings(IMG_SETTINGS);
+		  		$div.append($img);
+
+		  		// (f) Enable div draggable and sizeable
+		  		$div.draggable({containment:"parent"});
+		  		$div.resizable({containment:"parent"});
+
+		  		// (g) Chrome Fix: Take ui-icon class out to fix
+		  		// resizing se-icon problem
+		  		if (is_chrome){
+			  		$div.find('.ui-icon-gripsmall-diagonal-se').attr({
+			  			'class':'ui-resizable-handle \
+			  			ui-resizable-se \
+			  			ui-icon-gripsmall-diagonal-se',
+			  		});			  
+		  		}
+
+		  		// (e) Attach div+img onto target element  
+		  		$TARGET.append($div);
+		 		}
 	  		readFile.readAsDataURL(url);
-	    	// }
+	  	// }
 		}
 	});
 	$TARGET.attr('contenteditable', 'true');
@@ -153,22 +167,22 @@ $.fn.tabEnable = function(){
 	var $TARGET = this;
 	$TARGET.on('keydown', function (e) {
 		// Pressing TAB 
-	    if (e.which == 9) {
-	    	// Prevents focusing on next element
-	        e.preventDefault();
+	  if (e.which == 9) {
+	  	// Prevents focusing on next element
+	    e.preventDefault();
 
-	        if (!is_firefox){
-	        // Define Child Nodes Array 
-	        // and current cursor position
-		        var childNodes = $TARGET[0].childNodes;
-		        var currentLine = cursor.anchorNode.data;
-		        var start = cursor.anchorOffset; 
-		        var end = cursor.focusOffset;
+	    if (!is_firefox){
+	    // Define Child Nodes Array 
+	    // and current cursor position
+		    var childNodes = $TARGET[0].childNodes;
+		    var currentLine = cursor.anchorNode.data;
+		    var start = cursor.anchorOffset; 
+		    var end = cursor.focusOffset;
 
-		        // Determine which row the cursor is currently in
-		        // then create jQuery object that selects that row
+		    // Determine which row the cursor is currently in
+		    // then create jQuery object that selects that row
 
-		        var lineIdx = getChildNode(currentLine, childNodes);
+		    var lineIdx = getChildNode(currentLine, childNodes);
 
 				var $childSelector = $("#" + $TARGET[0].id + " div:nth-child("+(lineIdx+1)+")"); 
 				console.log(typeof $childSelector !== 'undefined');
@@ -182,26 +196,27 @@ $.fn.tabEnable = function(){
 					html_str.substring(end)
 				);
 
-		        // Put caret in correct position after pressing
-		        // TAB, based on current row and current column
+		    // Put caret in correct position after pressing
+		    // TAB, based on current row and current column
 
 					// FIX: Reposition caret in correct position
 					// in line when pressing TAB
 
 				var range = document.createRange();
-		        range.setStart(childNodes[lineIdx], 1);
-		        range.setEnd(childNodes[lineIdx], 1);
-		        cursor.removeAllRanges();
-		        cursor.addRange(range);
-		    }
-		    else {
-		    	// Fill dis bitch in
-		    }
+		    range.setStart(childNodes[lineIdx], 1);
+		    range.setEnd(childNodes[lineIdx], 1);
+		    cursor.removeAllRanges();
+		    cursor.addRange(range);
+		  }
+		  else {
+		  	// Fill dis bitch in
+		  }
 		}
 	});
 }
 
 
+// Primes first line of imgTxtHybrid item with div
 $.fn.primeDivs = function(){
 	this.html('<div><br></div>');
 }
