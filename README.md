@@ -12,8 +12,8 @@
 ####Usage Example/Requirements:
 
 ######Requirements:
-    * jQuery 
-    * jQuery-UI
+* jQuery 
+* jQuery-UI
 
 ######HTML Example:
 ```
