@@ -1,7 +1,7 @@
-Image Text Hybrid (aka JS Image Text Box):
-Author: Dean Mercado
+#Image Text Hybrid (aka JS Image Text Box):
+###Author: Dean Mercado
 
-What it does:
+##What it does:
 
   'imgTxtHybrid()' is a jQuery plugin function that enables one to take a jQuery object and turn it into both a simple text editor AND an image canvas.
 
@@ -9,14 +9,15 @@ What it does:
 
   The codebase for this function is on the img-txt-hybrid.js file in the ./js directory. 'contenteditable.html' is a working demo of the plug-in's capabilities.
 
-Usage Example/Requirements:
+##Usage Example/Requirements:
 
-  Requirements:
-    - jQuery 
-    - jQuery-UI
+  ###Requirements:
+    * jQuery 
+    * jQuery-UI
 
-	HTML Example:
-<!--<!DOCTYPE html> -->
+##HTML Example:
+   '''
+   <!DOCTYPE html> 
    <html>
    		<head>
    			<link href='./css/style.css' rel='stylesheet' type='text/css'/>
@@ -35,7 +36,8 @@ Usage Example/Requirements:
    			</div>
    		</body>
    </html> 
+   '''
 
-Future developments: 
-  - Ability to delete images
-  - Option to allow tab-whitespace
+###Future developments: 
+  * Ability to delete images
+  * Option to allow tab-whitespace
