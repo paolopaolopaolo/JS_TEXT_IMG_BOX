@@ -14,18 +14,22 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 // Variable SETTING Objects:
 // (see $.fn.dropEvent)
 
-RESIZE_OBJECT_SETTINGS = {
+var RESIZE_OBJECT_SETTINGS = {
 	'overflow': 'hidden',
 	'position':'absolute',
 	'white-space':'pre-wrap',
 	'display':'inline-block',	
 }
 
-IMG_SETTINGS = {
+var IMG_SETTINGS = {
 	'display':'block',
 	'width': 100 + '%',
 	'height': 100 + '%',
 }
+
+// COUNTERS
+
+var IMG_COUNTER = 0;
 
 ///////////////////////
 // Utility Functions //
@@ -44,6 +48,7 @@ function getChildNode(currentLine, childNodes){
 	}
 	return -1
 }
+
 
 ////////////////////////////////
 // jQuery Extension Functions //
@@ -78,6 +83,55 @@ $.fn.clickCycle = function(){
 			$(this).css('margin-right','0');
 		}
 	});
+}
+
+// Append a DELETE button to Drag and Drop Elements
+
+$.fn.attachDeleteButton = function(){
+	// Set a convenient variable 
+	$TARGET = this;
+
+	// Create random id# to apply to both button and corresponding item
+	var buttonid = Math.random().toString().replace('.', '_');
+
+	// Create button jQuery object
+	var button = document.createElement('input');
+	button.setAttribute('type', 'submit');
+	button.setAttribute('value', 'X');
+	button.setAttribute('class', 'delImg');
+	$button = $(button);
+
+	// Set element ids of target object and button
+	$button.attr('id', 'delImg'+ buttonid);
+	$TARGET.attr('id', buttonid);
+
+	// Set styling for button
+	$button.css({
+			'position': 'relative',
+			'bottom': '99%',
+			'float': 'right',
+			'right': '1px',
+			// 'z-index': '1000',
+			'display':'none,'
+	});
+
+	// Attach button to target element
+	$TARGET.append($button);
+
+	// Add event listener for hiding/showing button 
+	$TARGET.hover(function(){
+		$('#' + button.id).fadeIn();
+	}, function(){
+		$('#' + button.id).fadeOut();
+	});
+
+	// Add event listener for deleting target element with button
+	$button.on('click', function(event){
+			event.preventDefault();
+			event.stopPropagation();
+			$(this).parent().remove();
+	});
+
 }
 
 // Apply settings with JS objects
@@ -118,6 +172,7 @@ $.fn.dropEvent = function(){
   				// (b) Creates div and img jQuery objects
   				var div = document.createElement('div');
   				div.setAttribute('contenteditable','false');
+  				div.setAttribute('class','upload-image');
   				var img = new Image();
   				$div = $(div);
   				$img = $(img);
@@ -150,6 +205,9 @@ $.fn.dropEvent = function(){
 			  			ui-icon-gripsmall-diagonal-se',
 			  		});			  
 		  		}
+
+		  		// (h) Attach delete button to image
+		  		$div.attachDeleteButton();
 
 		  		// (e) Attach div+img onto target element  
 		  		$TARGET.append($div);
@@ -221,6 +279,11 @@ $.fn.primeDivs = function(){
 	this.html('<div><br></div>');
 }
 
+$.fn.countImages = function(){
+	console.log(this.find('img').length);
+	return this.find('img').length;
+}
+
 // Extend jQuery with the new functionality
 
 $.fn.imgTxtHybrid = function(){
@@ -233,6 +296,7 @@ $.fn.imgTxtHybrid = function(){
 	// Initialize the other functions
 	this.suppressDefaults();
 	this.primeDivs();
+	IMG_COUNTER = this.countImages();
 	this.dropEvent();
 	// this.tabEnable();
 }
