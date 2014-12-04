@@ -39,5 +39,6 @@
 ```
 
 ####Future developments: 
-  * Ability to delete images
+  * Allow image delete [DONE!]
   * Option to allow tab-whitespace
+  * Format target element to set up behavior for submitting
