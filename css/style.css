@@ -36,6 +36,11 @@ body {
 }
 
 /* contenteditable.html styling */
+button {
+	display: inline-block;
+	margin-left: 5px;
+}
+
 .contentEdit {
 	width: 100%;
 	height: 400px;
@@ -45,8 +50,20 @@ body {
 	padding: 5px 2px 5px 2px;
 	overflow: auto;
 	resize : both;
+	margin: 5px;
 }
 
+#result {
+	border-radius: 10px;
+	margin: 5px;
+	width: 30%;
+	height: 200px;
+	border: 1px solid black;
+	box-shadow: 2px 2px 1px black;
+	white-space: pre-wrap;
+	overflow: auto;
+	text-wrap: always;
+}
 /*#contentEdit img {
 	position: relative;
 	float: left;
