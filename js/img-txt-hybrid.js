@@ -55,27 +55,31 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 		// Set a convenient variable 
 		var $TARGET = this;
 
-		// Create button jQuery object
-		var button = document.createElement('input');
-		button.setAttribute('type', 'submit');
-		button.setAttribute('value', 'X');
-		button.setAttribute('class', 'delImg');
-		var $button = $(button);
+		if (this.find(".delImg").length < 1){
+			// Create button jQuery object
+			var button = document.createElement('input');
+			button.setAttribute('type', 'submit');
+			button.setAttribute('value', 'X');
+			button.setAttribute('class', 'delImg');
+			var $button = $(button);
+			// Set element id of button
+			$button.attr('id', 'delImg_'+ $TARGET[0].id);
 
-		// Set element id of button
-		$button.attr('id', 'delImg_'+ $TARGET[0].id);
-
-		// Set styling for button
-		$button.css({
-				'position': 'relative',
-				'bottom': '99%',
-				'float': 'right',
-				'right': '1px',
-				'display':'none',
-		});
-
-		// Attach button to target element
-		$TARGET.append($button);
+			// Set styling for button
+			$button.css({
+					'position': 'relative',
+					'bottom': '99%',
+					'float': 'right',
+					'right': '1px',
+					'display':'none',
+			});
+			// Attach button to target element
+			$TARGET.append($button);
+		}
+		else {
+			$button = $("#"+ 'delImg_'+ $TARGET[0].id.replace(".","\\."));
+			console.log($button);
+		}
 
 		// Add event listener for hiding/showing button 
 		$TARGET.hover(function(){
@@ -236,7 +240,9 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 			containment:"parent",
 			handles: "s, e, se, w, sw",
 		});
+
 		this.attachDeleteButton();
+
 		// Chrome Fix: Take ui-icon class out to fix
 		// resizing se-icon problem
 		if (is_chrome){
@@ -262,6 +268,7 @@ $.fn.refreshImgInteractions = function(){
 	for (var idx = 0; idx < $upload_images.length; idx++){
 		// Remove the old resize-handle div handles before calling imgInteract
 		$($upload_images[idx]).contents().remove('div.ui-resizable-handle');
+		$($upload_images[idx]).unbind();
 		$($upload_images[idx]).imgInteract();
 	}
 }
@@ -356,8 +363,11 @@ $.fn.imgTxtHybrid = function(obj_settings){
 	// Start with ContentEditable native widget
 	this.attr('contenteditable', 'true');
 	
-	// Force this element to be relative
-	this.css('position', 'relative');
+	// Force this element to be relative and have overflow:auto
+	this.css({
+		'position':'relative',
+		'overflow':'auto',
+	});
 
 	// Run the encapsulated functions
 	this.suppressDefaults();
