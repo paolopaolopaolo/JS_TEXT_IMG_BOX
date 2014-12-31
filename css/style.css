@@ -53,7 +53,8 @@ button {
 	margin: 5px;
 }
 
-#result {
+.resultbox {
+	clear:both;
 	border-radius: 10px;
 	margin: 5px;
 	width: 30%;
@@ -63,7 +64,9 @@ button {
 	white-space: pre-wrap;
 	overflow: auto;
 	text-wrap: always;
+	display: inline-block;
 }
+
 /*#contentEdit img {
 	position: relative;
 	float: left;

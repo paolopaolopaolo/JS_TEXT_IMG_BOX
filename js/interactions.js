@@ -52,4 +52,9 @@ $(document).ready(function(){
 			$($upload_images[idx]).imgInteract();
 		}
 	});
+
+	$("#print_text").on('click', function(){
+		var contents = $("#contentEdit").getText();
+		$("#textbox").html(contents);
+	});
 });

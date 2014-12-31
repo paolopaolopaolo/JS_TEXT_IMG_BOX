@@ -97,12 +97,6 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
 	}
 
-	// Apply settings with JS objects
-	$.fn.objectSettings = function(setting_object){
-		var $TARGET = this;
-		$TARGET.css(setting_object);
-	}
-
 	// Creates drop event listener to do the following for each file:
 	// (Overall) Create FileReader object, with an onload event that appends div
 	// to the content box.
@@ -135,7 +129,6 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 	  				var $img = $(img);
 	  				// (c) Set img src to data pointer
 	  				$img.attr('src', readFile.result);
-	  				
 	  				
 		  			if ($img[0].width <= 0 || $img[0].height <= 0){
 		  				console.log(file);
@@ -249,17 +242,23 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 			this.find('.ui-icon-gripsmall-diagonal-se').attr({
 				'class':'ui-resizable-handle ui-resizable-se ui-icon-gripsmall-diagonal-se',
 			});
-			console.log("issue fixed");
 		}
 	}
 
 	// Primes first line of imgTxtHybrid item with div
 	$.fn.primeDivs = function(){
-		this.html('<div><br></div>');
+		if (!is_firefox) {this.html('<div><br></div>');}
+		else {this.html('<p></p>');}
 	}
 
 })(jQuery, document, window);
 
+
+// UTILITY: Apply settings with JS objects
+$.fn.objectSettings = function(setting_object){
+	var $TARGET = this;
+	$TARGET.css(setting_object);
+}
 
 // UTILITY: Function that, when called, automatically
 // reloads and refreshes interactivity on any uploaded images
@@ -273,6 +272,60 @@ $.fn.refreshImgInteractions = function(){
 	}
 }
 
+// UTILITY: converts pixel css to percentage css
+$.fn.px_to_percent = function(){
+	var $THIS = this;
+	// Subfunction that takes a quality (ie 'top','height', etc)
+	// and a boolean and returns a float value of the pixels
+	// in each quality. 
+	function numerify(quality, parent){
+		var target;
+		if (parent) {
+			target =  $THIS.parent();
+		}
+		else {
+			target = $THIS;
+		}
+		return parseFloat(target.css(quality)
+					.replace("auto","0")
+					.replace("px",""));
+	}
+	// Takes a number and turns it into a string.
+	function stringify(number){
+		return number.toString();
+	}
+
+	// Variable initialization
+	var height_at_100_float, width_at_100_float, 
+		top_at_100_float, left_at_100_float, 
+		item_height_float, item_width_float,
+		item_top_float, item_left_float;
+
+	// Take height and width of the parent element
+	height_at_100_float = numerify('height', true);
+	width_at_100_float = numerify('width', true);
+
+	// Take height, width, top and left of the target element
+	item_height_float = numerify('height', false);
+	item_width_float =  numerify('width', false);
+	item_top_float = numerify('top', false);
+	item_left_float = numerify('left', false);
+
+    // Calculates percentages 
+	percent_height_percent = 100 * ( item_height_float / height_at_100_float);
+	percent_width_percent = 100 * ( item_width_float / width_at_100_float);
+	percent_top_percent = 100 * ( item_top_float / height_at_100_float);
+	percent_left_percent = 100 * ( item_left_float / width_at_100_float);
+
+	return ([
+			stringify(Math.floor(percent_top_percent)) + "%",
+			stringify(Math.ceil(percent_left_percent)) + "%",
+			stringify(percent_height_percent) + "%",
+			stringify(percent_width_percent) + "%",
+			]);
+
+}
+
 // UTILITY: counts the number of images in a given element
 $.fn.countImages = function(){
 	console.log(this.find('img').length);
@@ -280,26 +333,36 @@ $.fn.countImages = function(){
 }
 
 // UTILITY: returns an object array of the srcs of the uploaded images in a given element
-$.fn.imgSrc = function(){
+$.fn.imgSrc = function(percent){
+	if (typeof percent === 'undefined') {percent = false;}
 	var result = [];
 	var img_list = this.find('img');
 	for (var img_idx = 0; img_idx < img_list.length; img_idx++) {
 		// Initialize Variables
 		var item_obj;
 		var img_id,
-				img_top, img_left, img_height, img_width, 
+			img_top, img_left, img_height, img_width, 
 		    base64data_source, base64data_start, base64data,
 		    base64data_format_start, base64data_format_end, base64data_format;
 
 		// Get and store img id
 		img_id =  $(img_list[img_idx]).parent().attr('id');
 
-		// Store styling information of img
-		img_top = $(img_list[img_idx]).parent().css('top');
-		img_left = $(img_list[img_idx]).parent().css('left');
+		// Store styling information of img + parent entity
+		if (percent){
+			var img_params = $(img_list[img_idx]).parent().px_to_percent();
+			img_top = img_params[0];
+			img_left = img_params[1];
+		}
+		else{
+			img_top = $(img_list[img_idx]).parent().css('top');
+			img_left = $(img_list[img_idx]).parent().css('left');
+		}
+		
 		img_height = $(img_list[img_idx]).parent().css('height');
 		img_width = $(img_list[img_idx]).parent().css('width');
 
+		
 		// Isolate and store data information of img
 		base64data_source = img_list[img_idx]['src'];
 		base64data_start = base64data_source.indexOf('base64') + 7;
@@ -318,14 +381,71 @@ $.fn.imgSrc = function(){
 			'height': img_height,
 			'width': img_width,
 			'data': base64data,
-			'format': base64data_format,
-			'datasource': base64data_source,
 		};
 		// Append object to the result array
 		result.push(item_obj);
 	}
 	return result;
 }
+
+// UTILITY: From the HTML, go to JS String
+$.fn.getText = function(){
+	var result = "";
+	var buffer = "";
+	// Split actions based on platform
+	if(!is_firefox) {
+		// Get jQuery array of elements that are not uploaded images
+		$TARGET = this.contents().not(".upload-image");
+
+		// Go through elements and add the containing text + newline to buffer str
+		for (var i = 0; i < $TARGET.length ; i++){ 
+			buffer += jQuery($TARGET[i]).text() + "\n";
+		}
+		// replace all HTML spaces with JS spaces and add buffer to result
+		buffer = buffer.replace(/&nbsp;/g, " ");
+		result += buffer;
+	}
+	else {
+		// Take the html of the target element
+		string = this.html();
+		// HACK: Fix this part so it can't be fuggled up.
+		// Establish end of string portion at beginning of DIV
+		str_end = string.indexOf('<div');
+		result += string.slice(0,str_end).replace(/<br>/g, '\n');
+	}
+	return result;
+}
+
+// JS UTILITY: Based on Browser, handle line breaks 
+// when going from JS strings to HTML
+function handleLineBreaks(multiline_str){
+	if (is_firefox) { 
+		return multiline_str.replace(/\n/g,'<br>');
+	}
+	else {
+		// initialize result AND split strings by newline
+		var result = "";
+		var strings = multiline_str.split("\n");
+
+		// For each item in strings, initialize the insert item
+		// and then either insert <br> or the source string replaced with 
+		// html whitespace markup. Couch the insert item in div tags
+		for (var str = 0; str < strings.length; str++) {
+			var insert_item;
+			if ( strings[str] === "" ){
+				insert_item = "<br>";
+			}
+			else {
+				insert_item = strings[str].replace(" ", "&nbsp;");
+			}
+			result += "<div>" + insert_item + "</div>";
+
+		}
+		return result;
+
+	}
+}
+
 
 // The main function! 
 
