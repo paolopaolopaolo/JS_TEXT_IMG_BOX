@@ -11,6 +11,8 @@ var is_safari = navigator.userAgent.indexOf("Safari") > -1;
 var is_Opera = navigator.userAgent.indexOf("Presto") > -1;
 if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
+alert(is_safari);
+
 /////////////////////////////////////////////
 // jQuery Extension Function Encapsulation //
 /////////////////////////////////////////////
@@ -50,7 +52,6 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 	}
 
 	// Append a DELETE button to Drag and Drop Elements
-
 	$.fn.attachDeleteButton = function(){
 		// Set a convenient variable 
 		var $TARGET = this;
@@ -97,80 +98,133 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
 	}
 
-	// Creates drop event listener to do the following for each file:
+  // Helper Method: Appends soon-to-be interactive image to target element
+
+  function createAndAppendImage(imgsrc, file, $TARGET){
+  	// Variables
+  	var $img, $div, div, img;
+  	img = new Image();
+  	
+  	// Branch for Drag N Drop images
+  	if (typeof(file) !== 'undefined') {
+  		$img = $(img);
+	  	//Set img src to data pointer
+	  	$img.attr('src', imgsrc);
+	  	// Check img for errors
+  		if ($img[0].width <= 0 || $img[0].height <= 0){
+		  	console.log(file);
+	  		alert('Upload Error! Try again\n'+'Filename:'+file.name);
+	  		return false;
+	  	}
+  	}
+
+  	// Branch for Copy Paste images
+  	else {
+  		$img = $(imgsrc);
+  		var canvas = document.createElement('canvas');
+  		var ctx = canvas.getContext("2d");
+  		ctx.drawImage($img[0], 10, 10, $img[0].width-110, $img[0].height-20);
+  		$img.attr('src', canvas.toDataURL());
+  	}
+
+  	// Initialize and customize $div variable
+  	div = document.createElement('div');
+	  div.setAttribute('contenteditable','false');
+	  div.setAttribute('class','upload-image');
+	  $div = $(div);
+	  $div.css({
+		  'width': $img[0].width/4,
+		  'height': $img[0].height/4,
+		});
+		// Set ID on div to random number (FIX TO INCREASE POSSIBLE COMBINATIONS)
+		$div.attr('id', Math.random().toString().replace(".","_"));
+		// Apply object settings/ append img to div
+		$div.objectSettings(RESIZE_OBJECT_SETTINGS);
+		$img.objectSettings(IMG_SETTINGS);
+		$div.append($img);
+		// Enable div draggable and sizeable/ attach delete button
+		$div.imgInteract();
+		// Attach div+img onto target element 
+		$TARGET.append($div)
+  }
+
+
+	// METHODS that handle the data transfer from various 
+	// upload techniques
 	// (Overall) Create FileReader object, with an onload event that appends div
-	// to the content box.
-	$.fn.dropEvent = function(RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+	// to the content box, for EVERY object
+
+	function fileDropHandler(event, $TARGET){
+		// Prevent default behavior from browser
+		event.preventDefault();
+		event.stopPropagation();
+		// Load data transfer array and set files variable
+		// to the files in data array
+		var data = event.originalEvent.dataTransfer;
+		var files = data.files;
+		// Function for handling multiple read files
+		function handleReadFile(file) {
+			var readFile = new FileReader();
+			// Set onload and error methods of FileReader
+	  	// object to run the following routines:
+	  	readFile.onload= function(event){
+	  		// Prevent default actions / propagation up the tree
+				event.preventDefault();
+				event.stopPropagation();
+				createAndAppendImage(readFile.result, file, $TARGET);
+			}
+			// ... setting onError method
+			readFile.onerror = function(event){
+				alert("Upload Failed! Try again.");
+			}
+			// Start loading the file
+			readFile.readAsDataURL(file);
+		}
+
+		for (var i = 0; i < files.length; i ++) {
+			handleReadFile(files[i]);
+		}
+
+		$TARGET.attr('contenteditable', 'true');
+	}
+
+	// When handling copy pasted images, create a canvas object 
+	// to render the images as base64 data objects
+	function filePasteHandler(event, $TARGET){
+		event.preventDefault();
+		event.stopPropagation();
+		var imgsrc;
+		if(!is_firefox & !is_explorer) {
+			var source = event.originalEvent.clipboardData.getData('text/html');
+			imgsrc = source.slice(source.indexOf("<img"),source.indexOf("<!--End"));
+		}
+
+		else if (is_explorer){
+			imgsrc = window.clipboardData.getData('text/html');
+		}
+
+		else {
+			imgsrc = event.originalEvent.clipboardData.getData('text/html');
+			imgsrc = imgsrc.replace(/id=\"+[\w\d_\-!]*\"+/ , "");
+		}
+		createAndAppendImage(imgsrc, undefined, $TARGET);
+	}
+
+	// Creates an ondrop/onpaste event listener to do the following for each file:
+	$.fn.imgEvent = function(RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+		// Sets Variable for Target
 		var $TARGET = this;
+		// Sets the ondrop event
 		$TARGET.on('drop', function(event) {
-			// if (!is_firefox){
-				// Prevent default drop behavior from browser
-		  	event.preventDefault();
-		  	event.stopPropagation();
-		  	// Load data transfer array and set files variable
-		  	// to the files in data array
-		  	var data = event.originalEvent.dataTransfer;
-				var files = data.files;
-				// Function for handling multiple read files
-				function handleReadFile(file) {
-					var readFile = new FileReader();
-	  			// Set onload and error methods of FileReader
-	  			// object to run the following routines:
-	  			readFile.onload= function(event){
-	  				// (a) Prevent default actions / propagation up the tree
-	  				event.preventDefault();
-	  				event.stopPropagation();
-	  				// (b) Creates div and img jQuery objects
-	  				var div = document.createElement('div');
-	  				div.setAttribute('contenteditable','false');
-	  				div.setAttribute('class','upload-image');
-	  				var img = new Image();
-	  				var $div = $(div);
-	  				var $img = $(img);
-	  				// (c) Set img src to data pointer
-	  				$img.attr('src', readFile.result);
-	  				
-		  			if ($img[0].width <= 0 || $img[0].height <= 0){
-		  				console.log(file);
-	  					alert('Upload Error! Try again\n'+'Filename:'+file.name);
-	  					return false;
-	  				}
-	  				// (d) Set height and width of div 
-	  				// to a quarter of the size of img
-		  			$div.css({
-		  				'width': $img[0].width/4,
-		  				'height': $img[0].height/4,
-		  			});
+			fileDropHandler(event, $TARGET);
+		});
 
-		  			$div.attr('id', Math.random().toString().replace(".","_") + 
-		  				"_"+ file.name);
-
-		  			// (e) Apply object settings/ append img to div
-			  		$div.objectSettings(RESIZE_OBJECT_SETTINGS);
-			  		$img.objectSettings(IMG_SETTINGS);
-			  		$div.append($img);
-			  		// (f) Enable div draggable and sizeable/ attach delete button
-			  		$div.imgInteract();
-			  		// (g) Attach div+img onto target element 
-			  	 	$TARGET.append($div)
-			 		}
-			 		// ... setting onError method
-			 		readFile.onerror = function(event){
-			 			alert("Upload Failed! Try again.");
-			 		}
-			 		// Start loading the file
-			 		readFile.readAsDataURL(file);
-				}
-
-				// FIX: In this for block, there are issues with uploading multiple
-				// files to be images.
-
-				for (var i = 0; i < files.length; i ++) {
-					handleReadFile(files[i]);
-				}
-			$TARGET.attr('contenteditable', 'true');
+		// Sets the onpaste event
+		$TARGET.on('paste', function(event) {
+			filePasteHandler(event, $TARGET);
 		});
 	}
+
 	// Enables Inserting Tab Whitespace
 	// $.fn.tabEnable = function(){
 	// 	var cursor = window.getSelection();
@@ -323,7 +377,6 @@ $.fn.px_to_percent = function(){
 			stringify(percent_height_percent) + "%",
 			stringify(percent_width_percent) + "%",
 			]);
-
 }
 
 // UTILITY: counts the number of images in a given element
@@ -492,5 +545,5 @@ $.fn.imgTxtHybrid = function(obj_settings){
 	// Run the encapsulated functions
 	this.suppressDefaults();
 	this.primeDivs();
-	this.dropEvent(RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
+	this.imgEvent(RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
 }
