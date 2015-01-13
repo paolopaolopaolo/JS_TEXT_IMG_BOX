@@ -102,7 +102,7 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
   	    					.slice(2);
 
   	    randomized_id +=  "_" + randomized_id_2;
-  	    
+
   		// Branch for HD Sourced Images
   		if (typeof(file) !== 'undefined') {
   			// create new image and set src to base64 string
@@ -214,14 +214,8 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 		// if src !== undefined -- > internet sourced
 		if (typeof(src) !== "undefined") {
 			alert("Try copy-pasting the image instead!")
-			// imgsrc = "<img src='" + src + "'/>";
-			// createAndAppendImage(imgsrc, 
-			// 					undefined, 
-			// 					$TARGET,
-			// 					RESIZE_OBJECT_SETTINGS, 
-			// 					IMG_SETTINGS);
 		}
-		// else (src is undefined) -- > HD sourced
+
 		else {
 			for (var i = 0; i < files.length; i ++) {
 				handleReadFile(files[i]);
@@ -250,28 +244,31 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 		else if(is_chrome || is_safari) {
 			source = event.originalEvent.clipboardData.getData('text/html');
 			imgsrc = source.match(/<!--StartFragment-->(.*)<!--EndFragment-->/);
+			if (imgsrc !== null ) { result = imgsrc[1]; }
+			else {
+				plaintext = event.originalEvent.clipboardData.getData('text/plain');
 
+				if (plaintext == "" || typeof(plaintext)==="undefined") {
+					alert("Try dragging and dropping the image!");
+					plaintext = "";
+				}
+				result = plaintext;
+			}
 		}
 		// Firefox and others
 		else {
 			source = event.originalEvent.clipboardData.getData('text/html');
+			plaintext = event.originalEvent.clipboardData.getData('text/plain');
 			imgsrc = source;
 			result = imgsrc;
-		}
-
-		if (imgsrc !== null ) { 
-			if (!is_firefox){ result = imgsrc[1];} 
-		}
-		else {
-			plaintext = event.originalEvent.clipboardData.getData('text/plain');
-
-			if (plaintext == "" || typeof(plaintext)==="undefined") {
+			if (source === "" && plaintext === "" )
+			{
 				alert("Try dragging and dropping the image!");
-				plaintext = "";
+				result = "";
 			}
-			result = plaintext;
 		}
 
+		
 		// If we're looking at an image from the internet
 		if (result.indexOf("<img") > -1 ) {
 			createAndAppendImage(result, 
@@ -287,7 +284,7 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 			else {
 				result = event.originalEvent.clipboardData.getData('text/plain');
 			}
-			try {window.document.execCommand('insertText', false, result); }
+			try { window.document.execCommand('insertText', false, result); }
 			catch(e) { }
 		}	
 		// DEBUG AIDE 
