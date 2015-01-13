@@ -9,13 +9,6 @@ $(document).ready(function(){
 		'display':'inline-block',
 		'border-radius':'10px',	
 		});
-	$("#copySide").imgTxtHybrid({
-		'overflow': 'hidden',
-		'position':'absolute',
-		'white-space':'pre-wrap',
-		'display':'inline-block',
-		'border-radius':'10px',	
-		});
 
 	// Add click listener to #print_data button, which will print the
 	// JS object data on all the images in the top box 
@@ -33,23 +26,7 @@ $(document).ready(function(){
 				"'height': " + img_contents[i]['height'] + "\n" +
 				"'width': " + img_contents[i]['width'] + "\n" +
 				"'data': " + img_contents[i]['data'].slice(0,10) + "...\n" +
-				"'format': " + img_contents[i]['format'] + "\n" +
-				"'datasource': " + img_contents[i]['datasource'].slice(0,30) + "...\n" +
 				"}\n");
-		}
-	});
-
-	// Add click listener to #copy_box button, which will use 
-	// the data from the top box to recreate an uneditable version 
-	// of the top box.
-
-	$("#copy_box").on('click', function(){
-		var text_contents = $("#contentEdit").html();
-		$("#copySide").html(text_contents);
-		$upload_images = $("#copySide").find(".upload-image");
-		for (var idx = 0; idx < $upload_images.length; idx++){
-			$($upload_images[idx]).contents().remove('div.ui-resizable-handle');
-			$($upload_images[idx]).imgInteract();
 		}
 	});
 

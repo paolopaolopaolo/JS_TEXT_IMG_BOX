@@ -4,14 +4,14 @@
 */
 
 // Determine browser hack
+// FIND OUT HOW TO USE FEATURE DETECTION TO DIFFERENTIATE THE BELOW
 var is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
-var is_explorer = navigator.userAgent.indexOf('MSIE') > -1;
+var is_explorer = ("ActiveXObject" in window);
 var is_firefox = navigator.userAgent.indexOf('Firefox') > -1;
 var is_safari = navigator.userAgent.indexOf("Safari") > -1;
 var is_Opera = navigator.userAgent.indexOf("Presto") > -1;
 if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
-alert(is_safari);
 
 /////////////////////////////////////////////
 // jQuery Extension Function Encapsulation //
@@ -31,23 +31,6 @@ alert(is_safari);
 		this.on("dragenter", function(e){
 			e.stopPropagation();
 			e.preventDefault();
-		});
-	}
-
-	// Takes selector string: makes element alternate
-	// float:left and float:right by clicking it.
-	$.fn.clickCycle = function(){
-		this.unbind();
-		$(this).on('click', function(){
-			console.log($(this).css('float'));
-			if ($(this).css('float') === 'left'){
-				$(this).css('float','right');
-				$(this).css('margin-right','30%');
-			}
-			else{
-				$(this).css('float','left');
-				$(this).css('margin-right','0');
-			}
 		});
 	}
 
@@ -95,83 +78,129 @@ alert(is_safari);
 				event.stopPropagation();
 				$(this).parent().remove();
 		});
-
 	}
 
-  // Helper Method: Appends soon-to-be interactive image to target element
+  	// Helper Method: Appends soon-to-be interactive image to target element
+  	function createAndAppendImage(imgsrc, file, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+  		// Function Variables 
+  		var $new_image_entity,
+  	    	$div_wrapper,
+  	    	new_div_entity,
+  	    	new_image_entity,
+  	    	final_width,
+  	    	final_height,
+  	    	target_height,
+  	    	randomized_id,
+  	    	randomized_id_2;
 
-  function createAndAppendImage(imgsrc, file, $TARGET){
-  	// Variables
-  	var $img, $div, div, img;
-  	img = new Image();
-  	
-  	// Branch for Drag N Drop images
-  	if (typeof(file) !== 'undefined') {
-  		$img = $(img);
-	  	//Set img src to data pointer
-	  	$img.attr('src', imgsrc);
-	  	// Check img for errors
-  		if ($img[0].width <= 0 || $img[0].height <= 0){
-		  	console.log(file);
-	  		alert('Upload Error! Try again\n'+'Filename:'+file.name);
-	  		return false;
+  	    // setup randomized ID
+  	    randomized_id = Math.random()
+  	    					.toString()
+  	    					.slice(2);
+  	    randomized_id_2 = Math.random()
+  	    					.toString()
+  	    					.slice(2);
+
+  	    randomized_id +=  "_" + randomized_id_2;
+  	    
+  		// Branch for HD Sourced Images
+  		if (typeof(file) !== 'undefined') {
+  			// create new image and set src to base64 string
+  			new_image_entity = new Image();
+			$new_image_entity = $(new_image_entity);
+			$new_image_entity.attr('src', imgsrc);
+  		}
+
+	  	// Branch for Internet Sourced images
+	  	else {
+	  		// Create jquery new img entity 
+	  		// off of imgsrc (which should be img tag)
+	  		$new_image_entity = $(imgsrc);
 	  	}
+
+		// Wait for img to load before continuing everything else
+		$new_image_entity[0].onload = function(){
+			// Check img for errors, make alert
+  			if ($new_image_entity[0].width <= 0 || $new_image_entity[0].height <= 0){
+	  			alert('Upload Error! Try again\n');
+	  			return false;
+	  		}
+			// Initialize and set styling for $div variable
+		  	new_div_entity = document.createElement('div');
+			new_div_entity.setAttribute('contenteditable','false');
+			new_div_entity.setAttribute('class','upload-image');
+			$div_wrapper = $(new_div_entity);
+			target_height = parseInt($TARGET.css('height').replace('px',''));
+			
+			// Automatically resize image if the image is larger than the container
+			// "target" element
+			if ($new_image_entity[0].height > target_height){
+				// set div height to half the container height
+				final_height = target_height / 2;
+				// set width, keeping h:w ratio constant
+				final_width = ($new_image_entity[0].width/$new_image_entity[0].height) * final_height;
+			}
+			else {
+				// propagate the same h:w sizes
+				final_height = $new_image_entity[0].height;
+				final_width = $new_image_entity[0].width;
+			}
+
+			// set styling for div wrapper
+			$div_wrapper.css({
+		  		'width': final_width + "px",
+		  		'height': final_height + "px",
+			});
+			// Set ID on div to random number (FIX TO INCREASE POSSIBLE COMBINATIONS)
+			$div_wrapper.attr('id', randomized_id);
+			// Apply object settings/ append img to div
+			$div_wrapper.objectSettings(RESIZE_OBJECT_SETTINGS);
+			$new_image_entity.objectSettings(IMG_SETTINGS);
+			$div_wrapper.append($new_image_entity);
+			// Enable div draggable and sizeable/ attach delete button
+			$div_wrapper.imgInteract();
+			// Attach div+img onto target element 
+			$TARGET.append($div_wrapper)
+		}
   	}
 
-  	// Branch for Copy Paste images
-  	else {
-  		$img = $(imgsrc);
-  		var canvas = document.createElement('canvas');
-  		var ctx = canvas.getContext("2d");
-  		ctx.drawImage($img[0], 10, 10, $img[0].width-110, $img[0].height-20);
-  		$img.attr('src', canvas.toDataURL());
-  	}
+	/* METHODS that handle the data transfer from various 
+	   upload techniques */
 
-  	// Initialize and customize $div variable
-  	div = document.createElement('div');
-	  div.setAttribute('contenteditable','false');
-	  div.setAttribute('class','upload-image');
-	  $div = $(div);
-	  $div.css({
-		  'width': $img[0].width/4,
-		  'height': $img[0].height/4,
-		});
-		// Set ID on div to random number (FIX TO INCREASE POSSIBLE COMBINATIONS)
-		$div.attr('id', Math.random().toString().replace(".","_"));
-		// Apply object settings/ append img to div
-		$div.objectSettings(RESIZE_OBJECT_SETTINGS);
-		$img.objectSettings(IMG_SETTINGS);
-		$div.append($img);
-		// Enable div draggable and sizeable/ attach delete button
-		$div.imgInteract();
-		// Attach div+img onto target element 
-		$TARGET.append($div)
-  }
+    // Helper Function: takes drop event and target 
+    // and appends the image to the target
+	function fileDropHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+		var data,
+			files,
+			src,
+			imgsrc;
 
-
-	// METHODS that handle the data transfer from various 
-	// upload techniques
-	// (Overall) Create FileReader object, with an onload event that appends div
-	// to the content box, for EVERY object
-
-	function fileDropHandler(event, $TARGET){
-		// Prevent default behavior from browser
+		// Prevent default behavior from browser/ propagation
 		event.preventDefault();
 		event.stopPropagation();
 		// Load data transfer array and set files variable
 		// to the files in data array
 		var data = event.originalEvent.dataTransfer;
 		var files = data.files;
+
+		if (files.length <= 0){
+			src = event.originalEvent.dataTransfer.getData("URL");
+		}
+
 		// Function for handling multiple read files
 		function handleReadFile(file) {
 			var readFile = new FileReader();
 			// Set onload and error methods of FileReader
-	  	// object to run the following routines:
-	  	readFile.onload= function(event){
+	  		// object to run the following routines:
+	  		readFile.onload= function(event){
 	  		// Prevent default actions / propagation up the tree
 				event.preventDefault();
 				event.stopPropagation();
-				createAndAppendImage(readFile.result, file, $TARGET);
+				createAndAppendImage(readFile.result, 
+									file, 
+									$TARGET, 
+									RESIZE_OBJECT_SETTINGS, 
+									IMG_SETTINGS);
 			}
 			// ... setting onError method
 			readFile.onerror = function(event){
@@ -181,33 +210,88 @@ alert(is_safari);
 			readFile.readAsDataURL(file);
 		}
 
-		for (var i = 0; i < files.length; i ++) {
-			handleReadFile(files[i]);
+		// IN_PROGRESS: Conditional branch for Internet sourced vs HD sourced images
+		// if src !== undefined -- > internet sourced
+		if (typeof(src) !== "undefined") {
+			alert("Try copy-pasting the image instead!")
+			// imgsrc = "<img src='" + src + "'/>";
+			// createAndAppendImage(imgsrc, 
+			// 					undefined, 
+			// 					$TARGET,
+			// 					RESIZE_OBJECT_SETTINGS, 
+			// 					IMG_SETTINGS);
+		}
+		// else (src is undefined) -- > HD sourced
+		else {
+			for (var i = 0; i < files.length; i ++) {
+				handleReadFile(files[i]);
+			}
 		}
 
 		$TARGET.attr('contenteditable', 'true');
 	}
 
-	// When handling copy pasted images, create a canvas object 
-	// to render the images as base64 data objects
-	function filePasteHandler(event, $TARGET){
+	// Helper Function: for handling img-paste events, takes event and target
+	// and appends image to target
+	function filePasteHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+		var imgsrc,
+		    source,
+		    result,
+		    plaintext;	
+		// prevents default pasting
 		event.preventDefault();
-		event.stopPropagation();
-		var imgsrc;
-		if(!is_firefox & !is_explorer) {
-			var source = event.originalEvent.clipboardData.getData('text/html');
-			imgsrc = source.slice(source.indexOf("<img"),source.indexOf("<!--End"));
+		// IE
+		if (is_explorer){
+			source = window.clipboardData.getData('URL');
+			imgsrc = "<img src='" + source +"'/>";
+			result = imgsrc;
 		}
+		// Chrome & probably Safari
+		else if(is_chrome || is_safari) {
+			source = event.originalEvent.clipboardData.getData('text/html');
+			imgsrc = source.match(/<!--StartFragment-->(.*)<!--EndFragment-->/);
 
-		else if (is_explorer){
-			imgsrc = window.clipboardData.getData('text/html');
 		}
-
+		// Firefox and others
 		else {
-			imgsrc = event.originalEvent.clipboardData.getData('text/html');
-			imgsrc = imgsrc.replace(/id=\"+[\w\d_\-!]*\"+/ , "");
+			source = event.originalEvent.clipboardData.getData('text/html');
+			imgsrc = source;
+			result = imgsrc;
 		}
-		createAndAppendImage(imgsrc, undefined, $TARGET);
+
+		if (imgsrc !== null ) { 
+			if (!is_firefox){ result = imgsrc[1];} 
+		}
+		else {
+			plaintext = event.originalEvent.clipboardData.getData('text/plain');
+
+			if (plaintext == "" || typeof(plaintext)==="undefined") {
+				alert("Try dragging and dropping the image!");
+				plaintext = "";
+			}
+			result = plaintext;
+		}
+
+		// If we're looking at an image from the internet
+		if (result.indexOf("<img") > -1 ) {
+			createAndAppendImage(result, 
+								undefined, 
+								$TARGET, 
+								RESIZE_OBJECT_SETTINGS, 
+								IMG_SETTINGS);
+		}
+
+		// If we're looking at regular text
+		else {
+			if (is_explorer) {result = window.clipboardData.getData('text');}
+			else {
+				result = event.originalEvent.clipboardData.getData('text/plain');
+			}
+			try {window.document.execCommand('insertText', false, result); }
+			catch(e) { }
+		}	
+		// DEBUG AIDE 
+		// alert(result);
 	}
 
 	// Creates an ondrop/onpaste event listener to do the following for each file:
@@ -216,68 +300,27 @@ alert(is_safari);
 		var $TARGET = this;
 		// Sets the ondrop event
 		$TARGET.on('drop', function(event) {
-			fileDropHandler(event, $TARGET);
+			fileDropHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
 		});
 
 		// Sets the onpaste event
 		$TARGET.on('paste', function(event) {
-			filePasteHandler(event, $TARGET);
+			filePasteHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
 		});
 	}
 
 	// Enables Inserting Tab Whitespace
-	// $.fn.tabEnable = function(){
-	// 	var cursor = window.getSelection();
-	// 	var $TARGET = this;
-	// 	$TARGET.on('keydown', function (e) {
-	// 		// Pressing TAB 
-	// 	  if (e.which == 9) {
-	// 	  	// Prevents focusing on next element
-	// 	    e.preventDefault();
-
-	// 	    if (!is_firefox){
-	// 	    // Define Child Nodes Array 
-	// 	    // and current cursor position
-	// 		    var childNodes = $TARGET[0].childNodes;
-	// 		    var currentLine = cursor.anchorNode.data;
-	// 		    var start = cursor.anchorOffset; 
-	// 		    var end = cursor.focusOffset;
-
-	// 		    // Determine which row the cursor is currently in
-	// 		    // then create jQuery object that selects that row
-
-	// 		    var lineIdx = getChildNode(currentLine, childNodes);
-
-	// 				var $childSelector = $("#" + $TARGET[0].id + " div:nth-child("+(lineIdx+1)+")"); 
-	// 				console.log(typeof $childSelector !== 'undefined');
-	// 				console.log($childSelector);
-	// 				// Insert &emsp; into line.
-	// 				var html_str = $childSelector.html();
-
-	// 				$childSelector.html(
-	// 					html_str.substring(0,start) +
-	// 					"&emsp;" +
-	// 					html_str.substring(end)
-	// 				);
-
-	// 		    // Put caret in correct position after pressing
-	// 		    // TAB, based on current row and current column
-
-	// 					// FIX: Reposition caret in correct position
-	// 					// in line when pressing TAB
-
-	// 				var range = document.createRange();
-	// 		    range.setStart(childNodes[lineIdx], 1);
-	// 		    range.setEnd(childNodes[lineIdx], 1);
-	// 		    cursor.removeAllRanges();
-	// 		    cursor.addRange(range);
-	// 		  }
-	// 		  else {
-	// 		  	// Fill dis bitch in
-	// 		  }
-	// 		}
-	// 	});
-	// }
+	 $.fn.tabEnable = function(){
+	 	var $TARGET = this;
+	 	$TARGET.on('keydown', function (e) {
+	    // Pressing TAB 
+	 	  if (e.which == 9) {
+		  	// Prevents focusing on next element
+	 	    e.preventDefault();
+	 	    window.document.execCommand('insertText', false, "    ");
+		  }
+	 	});
+	}
 
 	// Make images in an element interactive \
 	//(ie draggable, resizeable, delete buttons)
@@ -305,14 +348,13 @@ alert(is_safari);
 		else {this.html('<p></p>');}
 	}
 
+	// UTILITY: Apply settings with JS objects
+	$.fn.objectSettings = function(setting_object){
+		var $TARGET = this;
+		$TARGET.css(setting_object);
+	}
+
 })(jQuery, document, window);
-
-
-// UTILITY: Apply settings with JS objects
-$.fn.objectSettings = function(setting_object){
-	var $TARGET = this;
-	$TARGET.css(setting_object);
-}
 
 // UTILITY: Function that, when called, automatically
 // reloads and refreshes interactivity on any uploaded images
@@ -324,6 +366,10 @@ $.fn.refreshImgInteractions = function(){
 		$($upload_images[idx]).unbind();
 		$($upload_images[idx]).imgInteract();
 	}
+	$upload_images.on('click', function(event){
+		$upload_images.css('z-index','0');
+		$(this).css('z-index', '10');
+	});
 }
 
 // UTILITY: converts pixel css to percentage css
@@ -387,23 +433,25 @@ $.fn.countImages = function(){
 
 // UTILITY: returns an object array of the srcs of the uploaded images in a given element
 $.fn.imgSrc = function(percent){
-	if (typeof percent === 'undefined') {percent = false;}
-	var result = [];
-	var img_list = this.find('img');
-	for (var img_idx = 0; img_idx < img_list.length; img_idx++) {
-		// Initialize Variables
-		var item_obj;
-		var img_id,
-			img_top, img_left, img_height, img_width, 
-		    base64data_source, base64data_start, base64data,
-		    base64data_format_start, base64data_format_end, base64data_format;
+	var result,
+		img_list,
+		item_obj,
+		img_id,
+		img_top, img_left, img_height, img_width, 
+		base64data_source, base64data_start, base64data,
+		img_params;
 
+	if (typeof(percent) === 'undefined') {percent = false;}
+	
+	result = [];
+	img_list = this.find('img');
+
+	for (var img_idx = 0; img_idx < img_list.length; img_idx++) {
 		// Get and store img id
 		img_id =  $(img_list[img_idx]).parent().attr('id');
-
 		// Store styling information of img + parent entity
 		if (percent){
-			var img_params = $(img_list[img_idx]).parent().px_to_percent();
+			img_params = $(img_list[img_idx]).parent().px_to_percent();
 			img_top = img_params[0];
 			img_left = img_params[1];
 		}
@@ -415,16 +463,18 @@ $.fn.imgSrc = function(percent){
 		img_height = $(img_list[img_idx]).parent().css('height');
 		img_width = $(img_list[img_idx]).parent().css('width');
 
-		
 		// Isolate and store data information of img
 		base64data_source = img_list[img_idx]['src'];
-		base64data_start = base64data_source.indexOf('base64') + 7;
-		base64data = base64data_source.slice(base64data_start, base64data_source.length);
 
-		// Isolate store format information of img
-		base64data_format_start = base64data_source.indexOf('image/')+6;
-		base64data_format_end = base64data_source.indexOf(';base64');
-		base64data_format = base64data_source.slice(base64data_format_start, base64data_format_end);
+		// If base64data_source has base64 marker, then extract the data...
+		if (base64data_source.indexOf('base64') > -1) {
+			base64data_start = base64data_source.indexOf('base64') + 7;
+			base64data = base64data_source.slice(base64data_start, base64data_source.length);
+		}
+		// ... otherwise, feed the http string to the 'data' parameter of the object
+		else {
+			base64data = base64data_source;
+		}
 
 		// Populate object with stored styling, data and format data
 		item_obj = {
@@ -445,14 +495,14 @@ $.fn.imgSrc = function(percent){
 $.fn.getText = function(){
 	var result = "";
 	var buffer = "";
-	// Split actions based on platform
+	// Split actions based on browser
 	if(!is_firefox) {
 		// Get jQuery array of elements that are not uploaded images
 		$TARGET = this.contents().not(".upload-image");
 
 		// Go through elements and add the containing text + newline to buffer str
 		for (var i = 0; i < $TARGET.length ; i++){ 
-			buffer += jQuery($TARGET[i]).text() + "\n";
+			buffer += jQuery($TARGET[i]).text() + "\n";		
 		}
 		// replace all HTML spaces with JS spaces and add buffer to result
 		buffer = buffer.replace(/&nbsp;/g, " ");
@@ -469,22 +519,25 @@ $.fn.getText = function(){
 	return result;
 }
 
-// JS UTILITY: Based on Browser, handle line breaks 
+// UTILITY: Based on Browser, handle line breaks 
 // when going from JS strings to HTML
 function handleLineBreaks(multiline_str){
+	var result,
+		strings,
+		insert_item;
+
 	if (is_firefox) { 
 		return multiline_str.replace(/\n/g,'<br>');
 	}
 	else {
 		// initialize result AND split strings by newline
-		var result = "";
-		var strings = multiline_str.split("\n");
+		result = "";
+		strings = multiline_str.split("\n");
 
 		// For each item in strings, initialize the insert item
 		// and then either insert <br> or the source string replaced with 
 		// html whitespace markup. Couch the insert item in div tags
 		for (var str = 0; str < strings.length; str++) {
-			var insert_item;
 			if ( strings[str] === "" ){
 				insert_item = "<br>";
 			}
@@ -492,16 +545,12 @@ function handleLineBreaks(multiline_str){
 				insert_item = strings[str].replace(" ", "&nbsp;");
 			}
 			result += "<div>" + insert_item + "</div>";
-
 		}
 		return result;
-
 	}
 }
 
-
 // The main function! 
-
 $.fn.imgTxtHybrid = function(obj_settings){
 	// Initialize SETTINGS variables
 	var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
@@ -540,10 +589,12 @@ $.fn.imgTxtHybrid = function(obj_settings){
 	this.css({
 		'position':'relative',
 		'overflow':'auto',
+		'line-height':'14px',
 	});
 
 	// Run the encapsulated functions
 	this.suppressDefaults();
 	this.primeDivs();
 	this.imgEvent(RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
+	this.tabEnable();
 }
