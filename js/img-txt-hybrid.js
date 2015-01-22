@@ -253,38 +253,34 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 			}
 			else {result = imgsrc;}
 		}
-		// Chrome & Safari
-		else if(is_chrome || is_safari) {
-			// Get text/html data from clipboard and see if there's a regex match for imgs
+		// Chrome & Safari & Firefox
+		else if(!is_explorer) {
+			// Get text/html data from clipboard
 			source = event.originalEvent.clipboardData.getData('text/html');
-			imgsrc = source.match(/<!--StartFragment-->(.*)<!--EndFragment-->/);
-
 			// ALSO create a plaintext variable that has text/plain clipboard data
 			plaintext = event.originalEvent.clipboardData.getData('text/plain');
 
-			// If there's a match, use the matched string as a result
-			if (imgsrc !== null ) { result = imgsrc[1]; }
+			// Chrome and Safari
+			if (is_chrome || is_safari) {
+				// See if there's a regex match for imgs
+				imgsrc = source.match(/<!--StartFragment-->(.*)<!--EndFragment-->/);
+				// If there's a match, use the matched string as a result
+				if (imgsrc !== null) { result = imgsrc[1]; }
+			}
+			// Firefox
+			else {
+				imgsrc = source;
+				result = imgsrc;
+			}
 
 			// If there's no match...
-			else {	
+			if (source === "" || result === undefined) {	
 				// Check plaintext. If there's no plain
 				if (plaintext === "" ) {
 					alert("Try dragging and dropping the image!");
 					plaintext = "";
 				}
 				result = plaintext;
-			}
-		}
-		// Firefox and others
-		else {
-			source = event.originalEvent.clipboardData.getData('text/html');
-			plaintext = event.originalEvent.clipboardData.getData('text/plain');
-			imgsrc = source;
-			result = imgsrc;
-			if (source === "" && plaintext === "" )
-			{
-				alert("Try dragging and dropping the image!");
-				result = "";
 			}
 		}
 
@@ -299,10 +295,6 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
 		// If we're looking at regular text
 		else {
-			if (is_explorer) {result = window.clipboardData.getData('text');}
-			else {
-				result = event.originalEvent.clipboardData.getData('text/plain');
-			}
 			try { window.document.execCommand('insertText', false, result); }
 			catch(e) { }
 		}	

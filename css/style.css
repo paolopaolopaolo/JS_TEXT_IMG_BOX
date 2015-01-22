@@ -1,5 +1,6 @@
 body {
 	font-family: "garamond","arial";
+	background-color: #71EEB8;
 }
 
 /* contenteditable.html styling */
@@ -8,10 +9,12 @@ button {
 	margin-left: 5px;
 	position: relative;
 	top:15px;
+	font-weight: bold;
 }
 
 h1 {
 	text-align: center;
+	color: white;
 }
 
 .contentEdit {
@@ -27,6 +30,7 @@ h1 {
 	resize: both;
 	margin: 5px;
 	left: 104px;
+	background-color: white;
 }
 
 .resultbox {
@@ -44,6 +48,7 @@ h1 {
 	top: 20px;
 	left: 219px;
 	padding: 10px;
+	background-color: white;
 }
 
 #helpicon {
@@ -78,7 +83,7 @@ h1 {
 	padding: 10px;
 	border-radius: 5px;
 	position: absolute;
-	top: 34%;
+	top: 20%;
 	left: 30%;
 	word-wrap: break-word;
 	cursor:pointer;
@@ -104,12 +109,3 @@ h1 {
 	left: 531px;
 }
 
-/*#contentEdit img {
-	position: relative;
-	float: left;
-	max-width: 48%;
-	max-height:48%;
-	resize: both;
-	overflow: hidden;
-	white-space: pre-wrap;
-}*/

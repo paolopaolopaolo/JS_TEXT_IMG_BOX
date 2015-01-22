@@ -15,7 +15,7 @@ $(document).ready(function(){
 	$("#print_data").on('click', function(){
 		var img_contents = $("#contentEdit").imgSrc();
 		var string_result = "";
-		$('#result').html("");
+		$('#result').html("[\n");
 		for (var i = 0; i  < img_contents.length; i++){
 			var results = $('#result').html();
 			$('#result').html(results +
@@ -26,20 +26,23 @@ $(document).ready(function(){
 				"'height': " + img_contents[i]['height'] + "\n" +
 				"'width': " + img_contents[i]['width'] + "\n" +
 				"'data': " + img_contents[i]['data'] + "..." +
-				"}"+"\n");
+				"},"+"\n");
 		}
+		$('#result').html($('#result').html()+"]");
 	});
 
 	$("#print_text").on('click', function(){
 		var contents = $("#contentEdit").stringConvHTMLtoJS();
 		$("#textbox").html(contents);
 	});
-	$("#help_display").hide();
-	$("#help_text").hide();
+	$("#help_display").fadeIn();
+	$("#help_text").fadeIn();
+	$("#help_text").draggable();
 
 	$("#helpicon").on('click', function(){
 		$("#help_display").fadeIn();
 		$("#help_text").fadeIn();
+		
 	});
 
 	$("#exit_display").on('click', function(){
