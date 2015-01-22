@@ -12,6 +12,11 @@ var is_safari = navigator.userAgent.indexOf("Safari") > -1;
 var is_Opera = navigator.userAgent.indexOf("Presto") > -1;
 if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
+// alert("Chrome:" + is_chrome + "\n" +
+// 	"Explorer:" + is_explorer + "\n" +
+// 	"Firefox:" + is_firefox + "\n" +
+// 	"Safari:" + is_safari+ "\n" +
+// 	"Opera:" + is_Opera);
 
 /////////////////////////////////////////////
 // jQuery Extension Function Encapsulation //
@@ -228,27 +233,42 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 	// Helper Function: for handling img-paste events, takes event and target
 	// and appends image to target
 	function filePasteHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+		// initialize variables
 		var imgsrc,
 		    source,
 		    result,
 		    plaintext;	
 		// prevents default pasting
 		event.preventDefault();
+		// alert(event.originalEvent.clipboardData.getData('text/html'));
+
 		// IE
 		if (is_explorer){
+			// Get the URL from pasted data
 			source = window.clipboardData.getData('URL');
 			imgsrc = "<img src='" + source +"'/>";
-			result = imgsrc;
+			plaintext = window.clipboardData.getData('text');
+			if (source === "" || typeof(source)==="undefined") {
+				result = plaintext;
+			}
+			else {result = imgsrc;}
 		}
-		// Chrome & probably Safari
+		// Chrome & Safari
 		else if(is_chrome || is_safari) {
+			// Get text/html data from clipboard and see if there's a regex match for imgs
 			source = event.originalEvent.clipboardData.getData('text/html');
 			imgsrc = source.match(/<!--StartFragment-->(.*)<!--EndFragment-->/);
-			if (imgsrc !== null ) { result = imgsrc[1]; }
-			else {
-				plaintext = event.originalEvent.clipboardData.getData('text/plain');
 
-				if (plaintext == "" || typeof(plaintext)==="undefined") {
+			// ALSO create a plaintext variable that has text/plain clipboard data
+			plaintext = event.originalEvent.clipboardData.getData('text/plain');
+
+			// If there's a match, use the matched string as a result
+			if (imgsrc !== null ) { result = imgsrc[1]; }
+
+			// If there's no match...
+			else {	
+				// Check plaintext. If there's no plain
+				if (plaintext === "" ) {
 					alert("Try dragging and dropping the image!");
 					plaintext = "";
 				}
@@ -268,8 +288,7 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 			}
 		}
 
-		
-		// If we're looking at an image from the internet
+		// If we're looking at an img tag from the internet
 		if (result.indexOf("<img") > -1 ) {
 			createAndAppendImage(result, 
 								undefined, 
@@ -489,10 +508,12 @@ $.fn.imgSrc = function(percent){
 }
 
 // UTILITY: From the HTML, go to JS String
-$.fn.getText = function(){
+$.fn.stringConvHTMLtoJS = function(){
 	var result = "";
 	var buffer = "";
-	// Split actions based on browser
+	// Split actions based on browser.
+
+	// If NOT Firefox...
 	if(!is_firefox) {
 		// Get jQuery array of elements that are not uploaded images
 		$TARGET = this.contents().not(".upload-image");
@@ -505,12 +526,16 @@ $.fn.getText = function(){
 		buffer = buffer.replace(/&nbsp;/g, " ");
 		result += buffer;
 	}
+	// If Firefox...
 	else {
 		// Take the html of the target element
 		string = this.html();
-		// HACK: Fix this part so it can't be fuggled up.
-		// Establish end of string portion at beginning of DIV
+		// HACK: Fix this part so it can't be fuggled up
+
+		// Establish end of string portion at beginning of any child DIV
 		str_end = string.indexOf('<div');
+		// Slice the string from the beggining to the index of the first
+		// child Div. Replace all <br> tags with \n
 		result += string.slice(0,str_end).replace(/<br>/g, '\n');
 	}
 	return result;
@@ -518,7 +543,7 @@ $.fn.getText = function(){
 
 // UTILITY: Based on Browser, handle line breaks 
 // when going from JS strings to HTML
-function handleLineBreaks(multiline_str){
+function stringConvJStoHTML(multiline_str){
 	var result,
 		strings,
 		insert_item;
