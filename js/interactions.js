@@ -49,4 +49,9 @@ $(document).ready(function(){
 		$("#help_display").fadeOut();
 		$("#help_text").fadeOut();
 	});
+
+	$("#help_display").on('click', function(){
+		$("#help_display").fadeOut();
+		$("#help_text").fadeOut();
+	});
 });
