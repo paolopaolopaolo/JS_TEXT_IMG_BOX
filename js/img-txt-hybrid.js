@@ -18,6 +18,9 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 // 	"Safari:" + is_safari+ "\n" +
 // 	"Opera:" + is_Opera);
 
+// Initialize GLOBAL SETTINGS variables
+var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
+
 /////////////////////////////////////////////
 // jQuery Extension Function Encapsulation //
 /////////////////////////////////////////////
@@ -86,7 +89,7 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 	}
 
   	// Helper Method: Appends soon-to-be interactive image to target element
-  	function createAndAppendImage(imgsrc, file, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+  	function createAndAppendImage(imgsrc, file, $TARGET){
   		// Function Variables 
   		var $new_image_entity,
   	    	$div_wrapper,
@@ -174,7 +177,7 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
     // Helper Function: takes drop event and target 
     // and appends the image to the target
-	function fileDropHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+	function fileDropHandler(event, $TARGET){
 		var data,
 			files,
 			src,
@@ -232,7 +235,7 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 
 	// Helper Function: for handling img-paste events, takes event and target
 	// and appends image to target
-	function filePasteHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+	function filePasteHandler(event, $TARGET){
 		// initialize variables
 		var imgsrc,
 		    source,
@@ -303,7 +306,7 @@ if ((is_chrome)&&(is_safari)) {is_safari=false;}
 	}
 
 	// Creates an ondrop/onpaste event listener to do the following for each file:
-	$.fn.imgEvent = function(RESIZE_OBJECT_SETTINGS, IMG_SETTINGS){
+	$.fn.imgEvent = function(){
 		// Sets Variable for Target
 		var $TARGET = this;
 		// Sets the ondrop event
@@ -378,6 +381,62 @@ $.fn.refreshImgInteractions = function(){
 		$upload_images.css('z-index','0');
 		$(this).css('z-index', '10');
 	});
+}
+
+// UTILITY: Create ".upload-image" div
+// Based slightly off of encapsulated 
+// createAndAppendImg() function. Will attempt to replace the encapsulated
+// function with this one.
+
+// Use this function to create drag-and-resize-(and-delete)-able images
+// based on data received from backend
+
+function createAndAppendImgDivs (idGenFunction, img_source_str, css_obj, $target) {
+	// Function Generated Variables
+	var $div_wrapper,
+		$new_image,
+		genIdFunction;
+
+	// If an id-generating function is not supplied, 
+	// use the generic randomized ID function
+	if (typeof(idGenFunction) !== "undefined")	{
+		genIdFunction = idGenFunction;	
+	}
+
+	else {
+		genIdFunction = function(){
+			var randomized_id,
+				randomized_id_2;
+			randomized_id = Math.random()
+  	    					.toString()
+  	    					.slice(2);
+  	    	randomized_id_2 = Math.random()
+  	    					.toString()
+  	    					.slice(2);
+  	    	return randomized_id + "_" + randomized_id_2;
+		}
+	}
+
+	// Set div and img objects with appropriate attrs and css
+	$div_wrapper = $(document.createElement('div'));
+	$div_wrapper.attr({
+				'id': genIdFunction(),
+				'class': 'upload-image', 
+			});
+
+	$new_image = $(document.createElement('img'));
+	$new_image.attr('src', img_source_str);
+
+	// Apply global setings to div and img objects AND
+	// any specific CSS stylings to be applied to the 
+	// div wrapper
+	$div_wrapper.objectSettings(RESIZE_OBJECT_SETTINGS);
+	$div_wrapper.css(css_obj);
+	$new_image.css(IMG_SETTINGS);
+	
+	// Append img to div and append div to target
+	$div_wrapper.append($new_image);
+	$target.append($div_wrapper);
 }
 
 // UTILITY: converts pixel css to percentage css
@@ -522,9 +581,8 @@ $.fn.stringConvHTMLtoJS = function(){
 	else {
 		// Take the html of the target element
 		string = this.html();
-		// HACK: Fix this part so it can't be fuggled up
-
-		// Establish end of string portion at beginning of any child DIV
+		// Firefox HACK: 
+		// Establish end of string portion at beginning of the first child DIV
 		str_end = string.indexOf('<div');
 		// Slice the string from the beggining to the index of the first
 		// child Div. Replace all <br> tags with \n
@@ -566,12 +624,11 @@ function stringConvJStoHTML(multiline_str){
 
 // The main function! 
 $.fn.imgTxtHybrid = function(obj_settings){
-	// Initialize SETTINGS variables
-	var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
+  // FIRST: set global object variables	
 
   // Run default object style settings if no arguments are passed
   // Else pass any parameter object style settings 
-	if (typeof obj_settings ==='undefined') {
+	if (typeof(obj_settings) ==='undefined') {
 		RESIZE_OBJECT_SETTINGS = {
 		'overflow': 'hidden',
 		'position':'absolute',
@@ -589,7 +646,7 @@ $.fn.imgTxtHybrid = function(obj_settings){
 		}
 	}
 
-	// Set img settings
+	// Set global img settings (cannot be messed with or it wont work out)
 	IMG_SETTINGS = {
 		'display':'block',
 		'width': 100 + '%',
@@ -603,12 +660,11 @@ $.fn.imgTxtHybrid = function(obj_settings){
 	this.css({
 		'position':'relative',
 		'overflow':'auto',
-		'line-height':'14px',
 	});
 
 	// Run the encapsulated functions
 	this.suppressDefaults();
 	this.primeDivs();
-	this.imgEvent(RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
+	this.imgEvent();
 	this.tabEnable();
 }

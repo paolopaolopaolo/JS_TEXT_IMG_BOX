@@ -72,3 +72,20 @@
 * stringConvHTMLtoJS(string):
   Takes JS strings and converts it into the appropriate HTML [Note: this function is NOT a jQuery function, just a regular JS function].
 
+* createAndAppendImgDivs(getIDFunction, image_source_string, css_object, $target):
+  Takes the following attributes and re-renders interactive images onto the content box.
+
+  ** getIDFunction:
+    a Javascript function that will either load the element id or generate a new one.
+    Generates a new id by default
+
+  ** image_source_string:
+    a string that indicates either the base64 or the URL source of the image
+
+  ** css_object:
+    a JSON object that is a set of key-value pairs for CSS properties (including top, left,
+    height and width).
+
+  ** $target:
+     a jQuery object (preferably with the same selector that imgTxtHybrid() is called on). 
+
