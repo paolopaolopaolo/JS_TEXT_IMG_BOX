@@ -149,8 +149,11 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 				final_width = $new_image_entity[0].width;
 			}
 
+
 			// set styling for div wrapper
 			$div_wrapper.css({
+				'top': $TARGET.scrollTop().toString() + "px",
+				'left': "10px",
 		  		'width': final_width + "px",
 		  		'height': final_height + "px"
 			});
