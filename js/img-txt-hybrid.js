@@ -6,17 +6,11 @@
 // Determine browser hack
 // FIND OUT HOW TO USE FEATURE DETECTION TO DIFFERENTIATE THE BELOW
 var is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
-var is_explorer = ("ActiveXObject" in window);
+var is_explorer = window.hasOwnProperty("ActiveXObject");
 var is_firefox = navigator.userAgent.indexOf('Firefox') > -1;
 var is_safari = navigator.userAgent.indexOf("Safari") > -1;
 var is_Opera = navigator.userAgent.indexOf("Presto") > -1;
-if ((is_chrome)&&(is_safari)) {is_safari=false;}
-
-// alert("Chrome:" + is_chrome + "\n" +
-// 	"Explorer:" + is_explorer + "\n" +
-// 	"Firefox:" + is_firefox + "\n" +
-// 	"Safari:" + is_safari+ "\n" +
-// 	"Opera:" + is_Opera);
+if (is_chrome && is_safari) {is_safari=false;}
 
 // Initialize GLOBAL SETTINGS variables
 var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
@@ -40,20 +34,21 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 			e.stopPropagation();
 			e.preventDefault();
 		});
-	}
+	};
 
 	// Append a DELETE button to Drag and Drop Elements
 	$.fn.attachDeleteButton = function(){
 		// Set a convenient variable 
-		var $TARGET = this;
+		var $TARGET, button, $button;
+                $TARGET = this;
 
 		if (this.find(".delImg").length < 1){
 			// Create button jQuery object
-			var button = document.createElement('input');
+			button = document.createElement('input');
 			button.setAttribute('type', 'submit');
 			button.setAttribute('value', 'X');
 			button.setAttribute('class', 'delImg');
-			var $button = $(button);
+			$button = $(button);
 			// Set element id of button
 			$button.attr('id', 'delImg_'+ $TARGET[0].id);
 
@@ -63,7 +58,7 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 					'bottom': '99%',
 					'float': 'right',
 					'right': '1px',
-					'display':'none',
+					'display':'none'
 			});
 			// Attach button to target element
 			$TARGET.append($button);
@@ -86,7 +81,7 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 				event.stopPropagation();
 				$(this).parent().remove();
 		});
-	}
+	};
 
   	// Helper Method: Appends soon-to-be interactive image to target element
   	function createAndAppendImage(imgsrc, file, $TARGET){
@@ -112,7 +107,7 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
   	    randomized_id +=  "_" + randomized_id_2;
 
   		// Branch for HD Sourced Images
-  		if (typeof(file) !== 'undefined') {
+  		if (file !== undefined) {
   			// create new image and set src to base64 string
   			new_image_entity = new Image();
 			$new_image_entity = $(new_image_entity);
@@ -134,11 +129,11 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 	  			return false;
 	  		}
 			// Initialize and set styling for $div variable
-		  	new_div_entity = document.createElement('div');
+		  	new_div_entity = doc.createElement('div');
 			new_div_entity.setAttribute('contenteditable','false');
 			new_div_entity.setAttribute('class','upload-image');
 			$div_wrapper = $(new_div_entity);
-			target_height = parseInt($TARGET.css('height').replace('px',''));
+			target_height = parseInt($TARGET.css('height').replace('px',''), 10);
 			
 			// Automatically resize image if the image is larger than the container
 			// "target" element
@@ -157,7 +152,7 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 			// set styling for div wrapper
 			$div_wrapper.css({
 		  		'width': final_width + "px",
-		  		'height': final_height + "px",
+		  		'height': final_height + "px"
 			});
 			// Set ID on div to random number (FIX TO INCREASE POSSIBLE COMBINATIONS)
 			$div_wrapper.attr('id', randomized_id);
@@ -168,8 +163,8 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 			// Enable div draggable and sizeable/ attach delete button
 			$div_wrapper.imgInteract();
 			// Attach div+img onto target element 
-			$TARGET.append($div_wrapper)
-		}
+			$TARGET.append($div_wrapper);
+		};
   	}
 
 	/* METHODS that handle the data transfer from various 
@@ -181,15 +176,15 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 		var data,
 			files,
 			src,
-			imgsrc;
+			i;
 
 		// Prevent default behavior from browser/ propagation
 		event.preventDefault();
 		event.stopPropagation();
 		// Load data transfer array and set files variable
 		// to the files in data array
-		var data = event.originalEvent.dataTransfer;
-		var files = data.files;
+		data = event.originalEvent.dataTransfer;
+		files = data.files;
 
 		if (files.length <= 0){
 			src = event.originalEvent.dataTransfer.getData("URL");
@@ -209,23 +204,23 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 									$TARGET, 
 									RESIZE_OBJECT_SETTINGS, 
 									IMG_SETTINGS);
-			}
+			};
 			// ... setting onError method
-			readFile.onerror = function(event){
+			readFile.onerror = function(){
 				alert("Upload Failed! Try again.");
-			}
+			};
 			// Start loading the file
 			readFile.readAsDataURL(file);
 		}
 
 		// IN_PROGRESS: Conditional branch for Internet sourced vs HD sourced images
 		// if src !== undefined -- > internet sourced
-		if (typeof(src) !== "undefined") {
-			alert("Try copy-pasting the image instead!")
+		if ( src !== undefined) {
+			alert("Try copy-pasting the image instead!");
 		}
 
 		else {
-			for (var i = 0; i < files.length; i ++) {
+			for (i = 0; i < files.length; i ++) {
 				handleReadFile(files[i]);
 			}
 		}
@@ -248,10 +243,10 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 		// IE
 		if (is_explorer){
 			// Get the URL from pasted data
-			source = window.clipboardData.getData('URL');
+			source = win.clipboardData.getData('URL');
 			imgsrc = "<img src='" + source +"'/>";
-			plaintext = window.clipboardData.getData('text');
-			if (source === "" || typeof(source)==="undefined") {
+			plaintext = win.clipboardData.getData('text');
+			if (source === "" || source === undefined ) {
 				result = plaintext;
 			}
 			else {result = imgsrc;}
@@ -298,8 +293,8 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 
 		// If we're looking at regular text
 		else {
-			try { window.document.execCommand('insertText', false, result); }
-			catch(e) { }
+			try { win.document.execCommand('insertText', false, result); }
+			catch(ignore) { }
 		}	
 		// DEBUG AIDE 
 		// alert(result);
@@ -318,20 +313,20 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 		$TARGET.on('paste', function(event) {
 			filePasteHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
 		});
-	}
+	};
 
 	// Enables Inserting Tab Whitespace
 	 $.fn.tabEnable = function(){
 	 	var $TARGET = this;
 	 	$TARGET.on('keydown', function (e) {
 	    // Pressing TAB 
-	 	  if (e.which == 9) {
+	 	  if (e.which === 9) {
 		  	// Prevents focusing on next element
 	 	    e.preventDefault();
-	 	    window.document.execCommand('insertText', false, "    ");
+	 	    win.document.execCommand('insertText', false, "    ");
 		  }
 	 	});
-	}
+	};
 
 	// Make images in an element interactive \
 	//(ie draggable, resizeable, delete buttons)
@@ -339,7 +334,7 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 		this.draggable({containment:'parent'});
 		this.resizable({
 			containment:"parent",
-			handles: "s, e, se, w, sw",
+			handles: "s, e, se, w, sw"
 		});
 
 		this.attachDeleteButton();
@@ -348,40 +343,43 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 		// resizing se-icon problem
 		if (is_chrome){
 			this.find('.ui-icon-gripsmall-diagonal-se').attr({
-				'class':'ui-resizable-handle ui-resizable-se ui-icon-gripsmall-diagonal-se',
+				'class':'ui-resizable-handle ui-resizable-se ui-icon-gripsmall-diagonal-se'
 			});
 		}
-	}
+	};
 
 	// Primes first line of imgTxtHybrid item with div
 	$.fn.primeDivs = function(){
 		if (!is_firefox) {this.html('<div><br></div>');}
 		else {this.html('<p></p>');}
-	}
+	};
 
 	// UTILITY: Apply settings with JS objects
 	$.fn.objectSettings = function(setting_object){
 		var $TARGET = this;
 		$TARGET.css(setting_object);
-	}
+	};
 
-})(jQuery, document, window);
+}(jQuery, document, window));
 
 // UTILITY: Function that, when called, automatically
 // reloads and refreshes interactivity on any uploaded images
 $.fn.refreshImgInteractions = function(){
+	"use strict";
+	var $upload_images, idx;
+
 	$upload_images = this.find(".upload-image");
-	for (var idx = 0; idx < $upload_images.length; idx++){
+	for (idx = 0; idx < $upload_images.length; idx++){
 		// Remove the old resize-handle div handles before calling imgInteract
 		$($upload_images[idx]).contents().remove('div.ui-resizable-handle');
 		$($upload_images[idx]).unbind();
 		$($upload_images[idx]).imgInteract();
 	}
-	$upload_images.on('click', function(event){
+	$upload_images.on('click', function(){
 		$upload_images.css('z-index','0');
 		$(this).css('z-index', '10');
 	});
-}
+};
 
 // UTILITY: Create ".upload-image" div
 // Based slightly off of encapsulated 
@@ -392,6 +390,7 @@ $.fn.refreshImgInteractions = function(){
 // based on data received from backend
 
 function createAndAppendImgDivs (idGenFunction, img_source_str, css_obj, $target) {
+	"use strict";
 	// Function Generated Variables
 	var $div_wrapper,
 		$new_image,
@@ -399,29 +398,24 @@ function createAndAppendImgDivs (idGenFunction, img_source_str, css_obj, $target
 
 	// If an id-generating function is not supplied, 
 	// use the generic randomized ID function
-	if (typeof(idGenFunction) !== "undefined")	{
+	if (idGenFunction !== undefined)	{
 		genIdFunction = idGenFunction;	
 	}
 
 	else {
 		genIdFunction = function(){
-			var randomized_id,
-				randomized_id_2;
-			randomized_id = Math.random()
-  	    					.toString()
-  	    					.slice(2);
-  	    	randomized_id_2 = Math.random()
-  	    					.toString()
-  	    					.slice(2);
+			var randomized_id, randomized_id_2;
+			randomized_id = Math.random().toString().slice(2);
+  	    	randomized_id_2 = Math.random().toString().slice(2);
   	    	return randomized_id + "_" + randomized_id_2;
-		}
+		};
 	}
 
 	// Set div and img objects with appropriate attrs and css
 	$div_wrapper = $(document.createElement('div'));
 	$div_wrapper.attr({
 				'id': genIdFunction(),
-				'class': 'upload-image', 
+				'class': 'upload-image' 
 			});
 
 	$new_image = $(document.createElement('img'));
@@ -440,98 +434,100 @@ function createAndAppendImgDivs (idGenFunction, img_source_str, css_obj, $target
 }
 
 // UTILITY: converts pixel css to percentage css
-$.fn.px_to_percent = function(){
-	var $THIS = this;
-	// Subfunction that takes a quality (ie 'top','height', etc)
-	// and a boolean and returns a float value of the pixels
-	// in each quality. 
-	function numerify(quality, parent){
-		var target;
-		if (parent) {
-			target =  $THIS.parent();
-		}
-		else {
-			target = $THIS;
-		}
-		return parseFloat(target.css(quality)
-					.replace("auto","0")
-					.replace("px",""));
-	}
-	// Takes a number and turns it into a string.
-	function stringify(number){
-		return number.toString();
-	}
+// $.fn.px_to_percent = function(){
 
-	// Variable initialization
-	var height_at_100_float, width_at_100_float, 
-		top_at_100_float, left_at_100_float, 
-		item_height_float, item_width_float,
-		item_top_float, item_left_float;
+// 	var $THIS = this;
+// 	// Subfunction that takes a quality (ie 'top','height', etc)
+// 	// and a boolean and returns a float value of the pixels
+// 	// in each quality. 
+// 	function numerify(quality, parent){
+// 		var target;
+// 		if (parent) {
+// 			target =  $THIS.parent();
+// 		}
+// 		else {
+// 			target = $THIS;
+// 		}
+// 		return parseFloat(target.css(quality)
+// 					.replace("auto","0")
+// 					.replace("px",""));
+// 	}
+// 	// Takes a number and turns it into a string.
+// 	function stringify(number){
+// 		return number.toString();
+// 	}
 
-	// Take height and width of the parent element
-	height_at_100_float = numerify('height', true);
-	width_at_100_float = numerify('width', true);
+// 	// Variable initialization
+// 	var height_at_100_float, width_at_100_float, 
+// 		top_at_100_float, left_at_100_float, 
+// 		item_height_float, item_width_float,
+// 		item_top_float, item_left_float;
 
-	// Take height, width, top and left of the target element
-	item_height_float = numerify('height', false);
-	item_width_float =  numerify('width', false);
-	item_top_float = numerify('top', false);
-	item_left_float = numerify('left', false);
+// 	// Take height and width of the parent element
+// 	height_at_100_float = numerify('height', true);
+// 	width_at_100_float = numerify('width', true);
 
-    // Calculates percentages 
-	percent_height_percent = 100 * ( item_height_float / height_at_100_float);
-	percent_width_percent = 100 * ( item_width_float / width_at_100_float);
-	percent_top_percent = 100 * ( item_top_float / height_at_100_float);
-	percent_left_percent = 100 * ( item_left_float / width_at_100_float);
+// 	// Take height, width, top and left of the target element
+// 	item_height_float = numerify('height', false);
+// 	item_width_float =  numerify('width', false);
+// 	item_top_float = numerify('top', false);
+// 	item_left_float = numerify('left', false);
 
-	return ([
-			stringify(Math.floor(percent_top_percent)) + "%",
-			stringify(Math.ceil(percent_left_percent)) + "%",
-			stringify(percent_height_percent) + "%",
-			stringify(percent_width_percent) + "%",
-			]);
-}
+//     // Calculates percentages 
+// 	percent_height_percent = 100 * ( item_height_float / height_at_100_float);
+// 	percent_width_percent = 100 * ( item_width_float / width_at_100_float);
+// 	percent_top_percent = 100 * ( item_top_float / height_at_100_float);
+// 	percent_left_percent = 100 * ( item_left_float / width_at_100_float);
 
-// UTILITY: counts the number of images in a given element
-$.fn.countImages = function(){
-	console.log(this.find('img').length);
-	return this.find('img').length;
-}
+// 	return ([
+// 			stringify(Math.floor(percent_top_percent)) + "%",
+// 			stringify(Math.ceil(percent_left_percent)) + "%",
+// 			stringify(percent_height_percent) + "%",
+// 			stringify(percent_width_percent) + "%",
+// 			]);
+// }
+
+// // UTILITY: counts the number of images in a given element
+// $.fn.countImages = function(){
+// 	console.log(this.find('img').length);
+// 	return this.find('img').length;
+// }
 
 // UTILITY: returns an object array of the srcs of the uploaded images in a given element
-$.fn.imgSrc = function(percent){
+$.fn.imgSrc = function(){
+	"use strict";
 	var result,
 		img_list,
 		item_obj,
 		img_id,
 		img_top, img_left, img_height, img_width, 
 		base64data_source, base64data_start, base64data,
-		img_params;
+		img_idx;
 
-	if (typeof(percent) === 'undefined') {percent = false;}
+	//if (typeof(percent) === 'undefined') {percent = false;}
 	
 	result = [];
 	img_list = this.find('img');
 
-	for (var img_idx = 0; img_idx < img_list.length; img_idx++) {
+	for (img_idx = 0; img_idx < img_list.length; img_idx++) {
 		// Get and store img id
 		img_id =  $(img_list[img_idx]).parent().attr('id');
 		// Store styling information of img + parent entity
-		if (percent){
-			img_params = $(img_list[img_idx]).parent().px_to_percent();
-			img_top = img_params[0];
-			img_left = img_params[1];
-		}
-		else{
-			img_top = $(img_list[img_idx]).parent().css('top');
-			img_left = $(img_list[img_idx]).parent().css('left');
-		}
+		// if (percent){
+		// 	img_params = $(img_list[img_idx]).parent().px_to_percent();
+		// 	img_top = img_params[0];
+		// 	img_left = img_params[1];
+		// }
+		// else{
+		img_top = $(img_list[img_idx]).parent().css('top');
+		img_left = $(img_list[img_idx]).parent().css('left');
+		// }
 		
 		img_height = $(img_list[img_idx]).parent().css('height');
 		img_width = $(img_list[img_idx]).parent().css('width');
 
 		// Isolate and store data information of img
-		base64data_source = img_list[img_idx]['src'];
+		base64data_source = img_list[img_idx].src;
 
 		// If base64data_source has base64 marker, then extract the data...
 		if (base64data_source.indexOf('base64') > -1) {
@@ -550,18 +546,20 @@ $.fn.imgSrc = function(percent){
 			'left': img_left,
 			'height': img_height,
 			'width': img_width,
-			'data': base64data,
+			'data': base64data
 		};
 		// Append object to the result array
 		result.push(item_obj);
 	}
 	return result;
-}
+};
 
 // UTILITY: From the HTML, go to JS String
 $.fn.stringConvHTMLtoJS = function(){
-	var result = "";
-	var buffer = "";
+	"use strict";
+	var result, buffer, i, $TARGET, string, str_end;
+	result = "";
+	buffer = "";
 	// Split actions based on browser.
 
 	// If NOT Firefox...
@@ -570,7 +568,7 @@ $.fn.stringConvHTMLtoJS = function(){
 		$TARGET = this.contents().not(".upload-image");
 
 		// Go through elements and add the containing text + newline to buffer str
-		for (var i = 0; i < $TARGET.length ; i++){ 
+		for (i = 0; i < $TARGET.length ; i++){ 
 			buffer += jQuery($TARGET[i]).text() + "\n";		
 		}
 		// replace all HTML spaces with JS spaces and add buffer to result
@@ -589,52 +587,56 @@ $.fn.stringConvHTMLtoJS = function(){
 		result += string.slice(0,str_end).replace(/<br>/g, '\n');
 	}
 	return result;
-}
+};
 
 // UTILITY: Based on Browser, handle line breaks 
 // when going from JS strings to HTML
 function stringConvJStoHTML(multiline_str){
+	"use strict";
 	var result,
 		strings,
-		insert_item;
+		insert_item,
+		str;
 
+	// return a simple replacement if Firefox
 	if (is_firefox) { 
 		return multiline_str.replace(/\n/g,'<br>');
 	}
-	else {
-		// initialize result AND split strings by newline
-		result = "";
-		strings = multiline_str.split("\n");
+	
+	// initialize result AND split strings by newline
+	result = "";
+	strings = multiline_str.split("\n");
 
-		// For each item in strings, initialize the insert item
-		// and then either insert <br> or the source string replaced with 
-		// html whitespace markup. Couch the insert item in div tags
-		for (var str = 0; str < strings.length; str++) {
-			if ( strings[str] === "" ){
-				insert_item = "<br>";
-			}
-			else {
-				insert_item = strings[str].replace(" ", "&nbsp;");
-			}
-			result += "<div>" + insert_item + "</div>";
+	// For each item in strings, initialize the insert item
+	// and then either insert <br> or the source string replaced with 
+	// html whitespace markup. Couch the insert item in div tags
+	for (str = 0; str < strings.length; str++) {
+		if ( strings[str] === "" ){
+			insert_item = "<br>";
 		}
-		return result;
+		else {
+			insert_item = strings[str].replace(" ", "&nbsp;");
+		}
+		result += "<div>" + insert_item + "</div>";
 	}
+	return result;
+	
 }
 
 // The main function! 
 $.fn.imgTxtHybrid = function(obj_settings){
+   "use strict";
   // FIRST: set global object variables	
 
   // Run default object style settings if no arguments are passed
   // Else pass any parameter object style settings 
-	if (typeof(obj_settings) ==='undefined') {
+	if (obj_settings === undefined) {
 		RESIZE_OBJECT_SETTINGS = {
 		'overflow': 'hidden',
 		'position':'absolute',
 		'white-space':'pre-wrap',
-		'display':'inline-block',	
-		}
+		'display':'inline-block'	
+		};
 	}
 	else {
 		// Catch errors that happen when uploading your own styling
@@ -650,8 +652,8 @@ $.fn.imgTxtHybrid = function(obj_settings){
 	IMG_SETTINGS = {
 		'display':'block',
 		'width': 100 + '%',
-		'height': 100 + '%',
-	}
+		'height': 100 + '%'
+	};
 
 	// Start with ContentEditable native widget
 	this.attr('contenteditable', 'true');
@@ -659,7 +661,7 @@ $.fn.imgTxtHybrid = function(obj_settings){
 	// Force this element to be relative and have overflow:auto
 	this.css({
 		'position':'relative',
-		'overflow':'auto',
+		'overflow':'auto'
 	});
 
 	// Run the encapsulated functions
@@ -667,4 +669,4 @@ $.fn.imgTxtHybrid = function(obj_settings){
 	this.primeDivs();
 	this.imgEvent();
 	this.tabEnable();
-}
+};
