@@ -625,48 +625,55 @@ function stringConvJStoHTML(multiline_str){
 
 // The main function! 
 $.fn.imgTxtHybrid = function(obj_settings){
-   "use strict";
+  "use strict";
+  var BASE_SETTINGS, property;
+
+  BASE_SETTINGS = {
+	'overflow': 'hidden',
+	'position':'absolute',
+	'white-space':'pre-wrap',
+	'display':'inline-block'	
+  };
+
   // FIRST: set global object variables	
 
   // Run default object style settings if no arguments are passed
   // Else pass any parameter object style settings 
-	if (obj_settings === undefined) {
-		RESIZE_OBJECT_SETTINGS = {
-		'overflow': 'hidden',
-		'position':'absolute',
-		'white-space':'pre-wrap',
-		'display':'inline-block'	
-		};
-	}
-	else {
-		// Catch errors that happen when uploading your own styling
-		try {
-			RESIZE_OBJECT_SETTINGS = obj_settings;
-		}
-		catch(error){
-			console.log(error);
+
+  RESIZE_OBJECT_SETTINGS = BASE_SETTINGS;
+	
+  if (obj_settings !== undefined) {
+	// Catch errors that happen when uploading your own styling
+	try {
+		RESIZE_OBJECT_SETTINGS = BASE_SETTINGS;
+		for (property in obj_settings){
+			RESIZE_OBJECT_SETTINGS[property] = obj_settings[property];
 		}
 	}
+	catch(error){
+		console.log(error);
+	}
+  }
 
 	// Set global img settings (cannot be messed with or it wont work out)
-	IMG_SETTINGS = {
-		'display':'block',
-		'width': 100 + '%',
-		'height': 100 + '%'
-	};
+  IMG_SETTINGS = {
+	'display':'block',
+	'width': 100 + '%',
+	'height': 100 + '%'
+  };
 
-	// Start with ContentEditable native widget
-	this.attr('contenteditable', 'true');
-	
-	// Force this element to be relative and have overflow:auto
-	this.css({
-		'position':'relative',
-		'overflow':'auto'
-	});
+  // Start with ContentEditable native widget
+  this.attr('contenteditable', 'true');
 
-	// Run the encapsulated functions
-	this.suppressDefaults();
-	this.primeDivs();
-	this.imgEvent();
-	this.tabEnable();
+  // Force this element to be relative and have overflow:auto
+  this.css({
+  	'position':'relative',
+  	'overflow':'auto'
+  });
+
+  // Run the encapsulated functions
+  this.suppressDefaults();
+  this.primeDivs();
+  this.imgEvent();
+  this.tabEnable();
 };
