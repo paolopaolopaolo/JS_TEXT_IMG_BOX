@@ -3,10 +3,10 @@ $(document).ready(function(){
 	// Call imgTxtHybrid on top box, 
 	// passing through desired CSS styling
 	$("#contentEdit").imgTxtHybrid({
-		'overflow': 'hidden',
-		'position':'absolute',
-		'white-space':'pre-wrap',
-		'display':'inline-block',
+		// 'overflow': 'hidden',
+		// 'position':'absolute',
+		// 'white-space':'pre-wrap',
+		// 'display':'inline-block',
 		'border-radius':'10px',	
 		});
 

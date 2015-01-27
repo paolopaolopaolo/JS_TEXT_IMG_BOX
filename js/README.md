@@ -44,8 +44,14 @@
 * Tab-whitespace enabled (pressing TAB produces extra whitespace)
 
 ######FUNCTION LIST:
-* $(<ELEMENT>).imgTxtHybrid() : 
+* $(<ELEMENT>).imgTxtHybrid(image_settings) : 
   Turns element into a image-friendly content-editable text box. 
+
+  ** image_settings:
+  A JSON object that is a set of key-value pairs of CSS properties and their values.
+  Developers can customize the style of uploaded images by inputing their own CSS preferences. 
+  (Note: it is not recommended to have "position" or "display" as properties 
+  since they may override values that are central to functionality).
 
 * $(<ELEMENT>).imgSrc() :
   Takes any images in the element and returns an array of IMG objects. Each
