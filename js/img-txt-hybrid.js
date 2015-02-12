@@ -557,14 +557,74 @@ $.fn.imgSrc = function () {
     return result;
 };
 
-// Function for sanitizing text
+// Function for sanitizing/and reformatting text
 function sanitizeText(text) {
     "use strict";
-    text = text.replace(/</g, "&lt;");
-    text = text.replace(/>/g, "&gt;");
-    text = text.replace(/&lt;\/(?=em)&gt;/g, "</em>");
-    text = text.replace(/&lt;(?=em)&gt;/g, "<em>");
-    return text
+    // alert(text);
+    var italic_tag, italic_end_tag,
+        bold_tag, bold_end_tag,
+        underline_tag, underline_end_tag,
+        line_break_tag,
+        italic_tag_str, italic_end_tag_str,
+        bold_tag_str, bold_end_tag_str,
+        underline_tag_str, underline_end_tag_str,
+        left_brack, right_brack,
+        HTML_JS_WHITELIST,
+        pattern;
+    // Browser specific tag patterns/string matchups
+    switch (!is_explorer) {
+    case true:
+        italic_tag = /&lt;i&gt;/g;
+        italic_end_tag = /&lt;\/i&gt;/g;
+        italic_tag_str = "<i>";
+        italic_end_tag_str = "</i>";
+        bold_tag = /&lt;b&gt;/g;
+        bold_end_tag = /&lt;\/b&gt;/g;
+        bold_tag_str = "<b>";
+        bold_end_tag_str = "</b>";
+        break;
+    case false:
+        italic_tag = /&lt;em&gt;/g;
+        italic_end_tag = /&lt;\/em&gt;/g;
+        italic_tag_str = "<em>";
+        italic_end_tag_str = "</em>";
+        bold_tag = /&lt;strong&gt;/g;
+        bold_end_tag = /&lt;\/strong&gt;/g;
+        bold_tag_str = "<strong>";
+        bold_end_tag_str = "</strong>";
+        break;
+    }
+
+    underline_tag = /&lt;u&gt;/g;
+    underline_end_tag = /&lt;\/u&gt;/g;
+    underline_tag_str = "<u>";
+    underline_end_tag_str = "</u>";
+
+    // Miscellaneous patterns
+    line_break_tag = /&lt;br&gt;/g;
+    left_brack = /</g;
+    right_brack = />/g;
+
+    // Whitelist of allowed formatting
+    HTML_JS_WHITELIST = {
+        left_brack: "&lt;",
+        right_brack: "&gt;",
+        line_break_tag: "<br>",
+        italic_tag: italic_tag_str,
+        italic_end_tag: italic_end_tag_str,
+        bold_tag: bold_tag_str,
+        bold_end_tag: bold_end_tag_str,
+        underline_tag: underline_tag_str,
+        underline_end_tag: underline_end_tag_str
+    }
+
+    // Replace all the characters in the whitelist
+    for (pattern in HTML_JS_WHITELIST) {
+        if (HTML_JS_WHITELIST.hasOwnProperty(pattern)) {
+            text = text.replace(pattern, HTML_JS_WHITELIST[pattern]);
+        }
+    }
+    return text;
 }
 
 // UTILITY: From the HTML, go to JS String
@@ -580,10 +640,10 @@ $.fn.stringConvHTMLtoJS = function () {
         $TARGET = this.contents().not(".upload-image");
         // Go through elements and add the containing text + newline to buffer str
         $TARGET.each(function () {
-            buffer += sanitizeText($(this).text()) + "\n";
+            buffer += $(this).html() + "\n";
         });
         // replace all HTML spaces with JS spaces and add buffer to result
-        buffer = buffer.replace(/&nbsp;/g, " ");
+        buffer = sanitizeText(buffer.replace(/&nbsp;/g, " "));
         result += buffer;
     } else {
         // If Firefox...
@@ -607,10 +667,9 @@ function stringConvJStoHTML(multiline_str) {
         strings,
         insert_item,
         str;
-        
     // return a simple replacement if Firefox
     if (is_firefox) {
-        return multiline_str.replace(/\n/g, '<br>');
+        return sanitizeText(multiline_str).replace(/<br>/g, "").replace(/\n/g, '<br>');
     }
 
     // initialize result AND split strings by newline
@@ -624,7 +683,7 @@ function stringConvJStoHTML(multiline_str) {
         if (strings[str] === "") {
             insert_item = "<br>";
         } else {
-            insert_item = sanitizeText(strings[str].replace(" ", "&nbsp;"));
+            insert_item = sanitizeText(strings[str].replace(/ /g, "&nbsp;"));
         }
         result += "<div>" + insert_item + "</div>";
     }
