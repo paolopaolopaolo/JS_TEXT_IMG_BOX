@@ -261,9 +261,9 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
             // alert("source: " + source + "\n" +
             // "plaintext: " + plaintext);
 
+            // Chrome and Safari
+            // See if there's a regex match for imgs
             if (is_chrome || is_safari) {
-                // Chrome and Safari
-                // See if there's a regex match for imgs
                 imgsrc = source.match(/<!--StartFragment-->(.*)<!--EndFragment-->/);
                 // If there's a match, use the matched string as a result
                 if (imgsrc !== null) { result = imgsrc[1]; }
@@ -569,9 +569,9 @@ $.fn.stringConvHTMLtoJS = function () {
         // Get jQuery array of elements that are not uploaded images
         $TARGET = this.contents().not(".upload-image");
         // Go through elements and add the containing text + newline to buffer str
-        for (i = 0; i < $TARGET.length; i++) {
-            buffer += jQuery($TARGET[i]).text() + "\n";
-        }
+        $TARGET.each(function () {
+            buffer += $(this).text() + "\n";
+        });
         // replace all HTML spaces with JS spaces and add buffer to result
         buffer = buffer.replace(/&nbsp;/g, " ");
         result += buffer;
