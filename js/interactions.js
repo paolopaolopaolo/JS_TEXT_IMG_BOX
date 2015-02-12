@@ -33,7 +33,7 @@ $(document).ready(function(){
 
 	$("#print_text").on('click', function(){
 		var contents = $("#contentEdit").stringConvHTMLtoJS();
-		$("#textbox").html(contents);
+		$("#textbox").html(stringConvJStoHTML(contents));
 	});
 	$("#help_display").fadeIn();
 	$("#help_text").fadeIn();

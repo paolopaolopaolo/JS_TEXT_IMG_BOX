@@ -557,10 +557,20 @@ $.fn.imgSrc = function () {
     return result;
 };
 
+// Function for sanitizing text
+function sanitizeText(text) {
+    "use strict";
+    text = text.replace(/</g, "&lt;");
+    text = text.replace(/>/g, "&gt;");
+    text = text.replace(/&lt;\/(?=em)&gt;/g, "</em>");
+    text = text.replace(/&lt;(?=em)&gt;/g, "<em>");
+    return text
+}
+
 // UTILITY: From the HTML, go to JS String
 $.fn.stringConvHTMLtoJS = function () {
     "use strict";
-    var result, buffer, i, $TARGET, string, str_end;
+    var result, buffer, $TARGET, string, str_end;
     result = "";
     buffer = "";
     // Split actions based on browser.
@@ -570,7 +580,7 @@ $.fn.stringConvHTMLtoJS = function () {
         $TARGET = this.contents().not(".upload-image");
         // Go through elements and add the containing text + newline to buffer str
         $TARGET.each(function () {
-            buffer += $(this).text() + "\n";
+            buffer += sanitizeText($(this).text()) + "\n";
         });
         // replace all HTML spaces with JS spaces and add buffer to result
         buffer = buffer.replace(/&nbsp;/g, " ");
@@ -584,7 +594,7 @@ $.fn.stringConvHTMLtoJS = function () {
         str_end = string.indexOf('<div');
         // Slice the string from the beggining to the index of the first
         // child Div. Replace all <br> tags with \n
-        result += string.slice(0, str_end).replace(/<br>/g, '\n');
+        result += sanitizeText(string.slice(0, str_end).replace(/<br>/g, '\n'));
     }
     return result;
 };
@@ -597,7 +607,7 @@ function stringConvJStoHTML(multiline_str) {
         strings,
         insert_item,
         str;
-
+        
     // return a simple replacement if Firefox
     if (is_firefox) {
         return multiline_str.replace(/\n/g, '<br>');
@@ -614,7 +624,7 @@ function stringConvJStoHTML(multiline_str) {
         if (strings[str] === "") {
             insert_item = "<br>";
         } else {
-            insert_item = strings[str].replace(" ", "&nbsp;");
+            insert_item = sanitizeText(strings[str].replace(" ", "&nbsp;"));
         }
         result += "<div>" + insert_item + "</div>";
     }
@@ -646,7 +656,9 @@ $.fn.imgTxtHybrid = function (obj_settings) {
         try {
             RESIZE_OBJECT_SETTINGS = BASE_SETTINGS;
             for (property in obj_settings) {
-                RESIZE_OBJECT_SETTINGS[property] = obj_settings[property];
+                if (obj_settings.hasOwnProperty(property)) {
+                    RESIZE_OBJECT_SETTINGS[property] = obj_settings[property];
+                }
             }
         } catch (error) {
             console.log(error);
