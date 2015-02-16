@@ -3,13 +3,21 @@
   author: Dean Mercado
 */
 
+// Initialize GLOBAL SETTINGS variables and Browser Hack variables
+var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS, UtilityHiddenFunctions,
+    is_firefox,
+    is_chrome,
+    is_explorer,
+    is_Opera,
+    is_safari;
+
 // Determine browser hack
 // FIND OUT HOW TO USE FEATURE DETECTION TO DIFFERENTIATE THE BELOW
-var is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
-var is_explorer = window.hasOwnProperty("ActiveXObject");
-var is_firefox = navigator.userAgent.indexOf('Firefox') > -1;
-var is_safari = navigator.userAgent.indexOf("Safari") > -1;
-var is_Opera = navigator.userAgent.indexOf("Presto") > -1;
+is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
+is_explorer = window.hasOwnProperty("ActiveXObject");
+is_firefox = navigator.userAgent.indexOf('Firefox') > -1;
+is_safari = navigator.userAgent.indexOf("Safari") > -1;
+is_Opera = navigator.userAgent.indexOf("Presto") > -1;
 if (is_chrome && is_safari) {is_safari = false; }
 
 // alert("is_chrome: " + is_chrome + "\n" +
@@ -18,8 +26,6 @@ if (is_chrome && is_safari) {is_safari = false; }
 //      "is_safari: " + is_safari + "\n" +
 //      "is_Opera:" + is_Opera);
 
-// Initialize GLOBAL SETTINGS variables
-var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
 
 /////////////////////////////////////////////
 // jQuery Extension Function Encapsulation //
@@ -325,7 +331,11 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
             if (e.which === 9) {
                 // Prevents focusing on next element
                 e.preventDefault();
-                win.document.execCommand('insertText', false, "    ");
+                if (!is_firefox) {
+                    win.document.execCommand('insertText', false, "\t");
+                } else {
+                    doc.execCommand('insertText', false, "\t");
+                }
             }
         });
     };
@@ -362,8 +372,71 @@ var RESIZE_OBJECT_SETTINGS, IMG_SETTINGS;
         var $TARGET = this;
         $TARGET.css(setting_object);
     };
-
 }(jQuery, document, window));
+
+// Hidden helper functions to support Utility Functions
+UtilityHiddenFunctions = {
+    repeatEscape: function (pattern, text) {
+        "use strict";
+        // Initialize variables
+        var result_is_null_buf, result_is_null, buffer_string;
+
+        // Set null counter and null counter buffer to false
+        result_is_null_buf = false;
+        result_is_null = false;
+        // Set buffer string to first found pattern
+        buffer_string = pattern.exec(text);
+
+        // This while loop stops when both the null counter and null counter
+        // buffer evaluate to True. That way, this ensures all matches are
+        // found. Since text is replaced when there are matches, there is
+        // little chance of the loop becoming non-convergent
+        while (!(result_is_null_buf && result_is_null)) {
+            // If the buffer string is found to be null, set null counter buffer to True
+            // and if null counter buffer is already true, set null counter to true
+            if (buffer_string === null) {
+                if (result_is_null_buf) {
+                    result_is_null = true;
+                }
+                result_is_null_buf = true;
+            } else {
+                // If buffer string is not null, replace the escaped brackets around the
+                // matched segment with unescaped HTML brackets and reset 
+                text = text.replace(buffer_string[0], "<" + buffer_string[1] + ">");
+                result_is_null = false;
+                result_is_null_buf = false;
+            }
+            buffer_string = pattern.exec(text);
+        }
+        return text;
+    },
+    sanitizeText: function (text) {
+        "use strict";
+        // Initialize Variables
+        var bracket_pattern,
+            whitelist_pattern,
+            span_pattern,
+            buffer_string;
+
+        // Set Patterns for detection
+        bracket_pattern = /<([^>]*)>/gm;
+        whitelist_pattern = /&lt;(\/*[biu]|br)&gt;/gm;
+        span_pattern = /&lt; *(\/*span[ \w\d\-\_="`':]*) *&gt;/gm;
+
+        // First pattern: replace all brackets with escaped HTML charrefs 
+        buffer_string = bracket_pattern.exec(text);
+        while (buffer_string !== null) {
+            // console.log("buffer_string: " + buffer_string); 
+            text = text.replace(buffer_string[0], "&lt;" + buffer_string[1] + "&gt;");
+            buffer_string = bracket_pattern.exec(text);
+        }
+        // Second pattern: re-replace all escaped i,u,b and br tags with unescaped equivalents
+        text = this.repeatEscape(whitelist_pattern, text);
+        // Third pattern: the above procedure is repeated but with the span pattern
+        text = this.repeatEscape(span_pattern, text);
+        return text;
+    }
+};
 
 // UTILITY: Function that, when called, automatically
 // reloads and refreshes interactivity on any uploaded images
@@ -388,10 +461,8 @@ $.fn.refreshImgInteractions = function () {
 // Based slightly off of encapsulated 
 // createAndAppendImg() function. Will attempt to replace the encapsulated
 // function with this one.
-
 // Use this function to create drag-and-resize-(and-delete)-able images
 // based on data received from backend
-
 function createAndAppendImgDivs(idGenFunction, img_source_str, css_obj, $target) {
     "use strict";
     // Function Generated Variables
@@ -434,66 +505,6 @@ function createAndAppendImgDivs(idGenFunction, img_source_str, css_obj, $target)
     $target.append($div_wrapper);
 }
 
-// UTILITY: converts pixel css to percentage css
-// $.fn.px_to_percent = function() {
-
-//  var $THIS = this;
-//  // Subfunction that takes a quality (ie 'top','height', etc)
-//  // and a boolean and returns a float value of the pixels
-//  // in each quality. 
-//  function numerify(quality, parent) {
-//    var target;
-//    if (parent) {
-//      target =  $THIS.parent();
-//    }
-//    else {
-//      target = $THIS;
-//    }
-//    return parseFloat(target.css(quality)
-//          .replace("auto","0")
-//          .replace("px",""));
-//  }
-//  // Takes a number and turns it into a string.
-//  function stringify(number) {
-//    return number.toString();
-//  }
-
-//  // Variable initialization
-//  var height_at_100_float, width_at_100_float, 
-//    top_at_100_float, left_at_100_float, 
-//    item_height_float, item_width_float,
-//    item_top_float, item_left_float;
-
-//  // Take height and width of the parent element
-//  height_at_100_float = numerify('height', true);
-//  width_at_100_float = numerify('width', true);
-
-//  // Take height, width, top and left of the target element
-//  item_height_float = numerify('height', false);
-//  item_width_float =  numerify('width', false);
-//  item_top_float = numerify('top', false);
-//  item_left_float = numerify('left', false);
-
-//     // Calculates percentages 
-//  percent_height_percent = 100 * ( item_height_float / height_at_100_float);
-//  percent_width_percent = 100 * ( item_width_float / width_at_100_float);
-//  percent_top_percent = 100 * ( item_top_float / height_at_100_float);
-//  percent_left_percent = 100 * ( item_left_float / width_at_100_float);
-
-//  return ([
-//      stringify(Math.floor(percent_top_percent)) + "%",
-//      stringify(Math.ceil(percent_left_percent)) + "%",
-//      stringify(percent_height_percent) + "%",
-//      stringify(percent_width_percent) + "%",
-//      ]);
-// }
-
-// // UTILITY: counts the number of images in a given element
-// $.fn.countImages = function() {
-//  console.log(this.find('img').length);
-//  return this.find('img').length;
-// }
-
 // UTILITY: returns an object array of the srcs of the uploaded images in a given element
 $.fn.imgSrc = function () {
     "use strict";
@@ -516,16 +527,8 @@ $.fn.imgSrc = function () {
     for (img_idx = 0; img_idx < img_list.length; img_idx++) {
         // Get and store img id
         img_id =  $(img_list[img_idx]).parent().attr('id');
-        // Store styling information of img + parent entity
-        // if (percent) {
-        //  img_params = $(img_list[img_idx]).parent().px_to_percent();
-        //  img_top = img_params[0];
-        //  img_left = img_params[1];
-        // }
-        // else{
         img_top = $(img_list[img_idx]).parent().css('top');
         img_left = $(img_list[img_idx]).parent().css('left');
-        // }
 
         img_height = $(img_list[img_idx]).parent().css('height');
         img_width = $(img_list[img_idx]).parent().css('width');
@@ -557,76 +560,6 @@ $.fn.imgSrc = function () {
     return result;
 };
 
-// Function for sanitizing/and reformatting text
-function sanitizeText(text) {
-    "use strict";
-    // alert(text);
-    var italic_tag, italic_end_tag,
-        bold_tag, bold_end_tag,
-        underline_tag, underline_end_tag,
-        line_break_tag,
-        italic_tag_str, italic_end_tag_str,
-        bold_tag_str, bold_end_tag_str,
-        underline_tag_str, underline_end_tag_str,
-        left_brack, right_brack,
-        HTML_JS_WHITELIST,
-        pattern;
-    // Browser specific tag patterns/string matchups
-    switch (!is_explorer) {
-    case true:
-        italic_tag = /&lt;i&gt;/g;
-        italic_end_tag = /&lt;\/i&gt;/g;
-        italic_tag_str = "<i>";
-        italic_end_tag_str = "</i>";
-        bold_tag = /&lt;b&gt;/g;
-        bold_end_tag = /&lt;\/b&gt;/g;
-        bold_tag_str = "<b>";
-        bold_end_tag_str = "</b>";
-        break;
-    case false:
-        italic_tag = /&lt;em&gt;/g;
-        italic_end_tag = /&lt;\/em&gt;/g;
-        italic_tag_str = "<em>";
-        italic_end_tag_str = "</em>";
-        bold_tag = /&lt;strong&gt;/g;
-        bold_end_tag = /&lt;\/strong&gt;/g;
-        bold_tag_str = "<strong>";
-        bold_end_tag_str = "</strong>";
-        break;
-    }
-
-    underline_tag = /&lt;u&gt;/g;
-    underline_end_tag = /&lt;\/u&gt;/g;
-    underline_tag_str = "<u>";
-    underline_end_tag_str = "</u>";
-
-    // Miscellaneous patterns
-    line_break_tag = /&lt;br&gt;/g;
-    left_brack = /</g;
-    right_brack = />/g;
-
-    // Whitelist of allowed formatting
-    HTML_JS_WHITELIST = {
-        left_brack: "&lt;",
-        right_brack: "&gt;",
-        line_break_tag: "<br>",
-        italic_tag: italic_tag_str,
-        italic_end_tag: italic_end_tag_str,
-        bold_tag: bold_tag_str,
-        bold_end_tag: bold_end_tag_str,
-        underline_tag: underline_tag_str,
-        underline_end_tag: underline_end_tag_str
-    }
-
-    // Replace all the characters in the whitelist
-    for (pattern in HTML_JS_WHITELIST) {
-        if (HTML_JS_WHITELIST.hasOwnProperty(pattern)) {
-            text = text.replace(pattern, HTML_JS_WHITELIST[pattern]);
-        }
-    }
-    return text;
-}
-
 // UTILITY: From the HTML, go to JS String
 $.fn.stringConvHTMLtoJS = function () {
     "use strict";
@@ -643,7 +576,7 @@ $.fn.stringConvHTMLtoJS = function () {
             buffer += $(this).html() + "\n";
         });
         // replace all HTML spaces with JS spaces and add buffer to result
-        buffer = sanitizeText(buffer.replace(/&nbsp;/g, " "));
+        buffer = UtilityHiddenFunctions.sanitizeText(buffer.replace(/&nbsp;/g, " "));
         result += buffer;
     } else {
         // If Firefox...
@@ -654,7 +587,7 @@ $.fn.stringConvHTMLtoJS = function () {
         str_end = string.indexOf('<div');
         // Slice the string from the beggining to the index of the first
         // child Div. Replace all <br> tags with \n
-        result += sanitizeText(string.slice(0, str_end).replace(/<br>/g, '\n'));
+        result += UtilityHiddenFunctions.sanitizeText(string.slice(0, str_end).replace(/<br>/g, '\n'));
     }
     return result;
 };
@@ -669,7 +602,9 @@ function stringConvJStoHTML(multiline_str) {
         str;
     // return a simple replacement if Firefox
     if (is_firefox) {
-        return sanitizeText(multiline_str).replace(/<br>/g, "").replace(/\n/g, '<br>');
+        return UtilityHiddenFunctions.sanitizeText(multiline_str)
+                                     .replace(/<br>/g, "")
+                                     .replace(/\n/g, '<br>');
     }
 
     // initialize result AND split strings by newline
@@ -683,7 +618,7 @@ function stringConvJStoHTML(multiline_str) {
         if (strings[str] === "") {
             insert_item = "<br>";
         } else {
-            insert_item = sanitizeText(strings[str].replace(/ /g, "&nbsp;"));
+            insert_item = UtilityHiddenFunctions.sanitizeText(strings[str]);
         }
         result += "<div>" + insert_item + "</div>";
     }
