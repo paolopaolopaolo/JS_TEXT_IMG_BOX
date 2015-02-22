@@ -17,6 +17,17 @@ h1 {
 	color: white;
 }
 
+ul li ul {
+	font-size: 10px
+}
+
+ul li ul li:first-child, ul li ul li:last-child {
+	position: relative;
+	left: -20px;
+	list-style-type: none;
+	width: 31%;
+}
+
 .contentEdit {
 	width: 77%;
 	height: 400px;

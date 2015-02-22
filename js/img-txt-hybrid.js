@@ -323,7 +323,7 @@ if (is_chrome && is_safari) {is_safari = false; }
         });
     };
 
-    // Enables Inserting Tab Whitespace
+    // Enables Inserting Tab AN OTHER Whitespace
     $.fn.tabEnable = function () {
         var $TARGET = this;
         $TARGET.on('keydown', function (e) {
@@ -334,7 +334,29 @@ if (is_chrome && is_safari) {is_safari = false; }
                 if (!is_firefox) {
                     win.document.execCommand('insertText', false, "\t");
                 } else {
-                    doc.execCommand('insertText', false, "\t");
+                    doc.execCommand('insertHTML', false, "&emsp;");
+                }
+            }
+        });
+    };
+
+    // Enable Key Shortcut Text Formatting (Firefox only)
+    $.fn.ctrlFormatting = function () {
+        var $TARGET = this;
+        $TARGET.on('keydown', function (press) {
+            // Pressing CTRL + ...
+            if (press.ctrlKey) {
+                if (press.key === 'b') {
+                    press.preventDefault();
+                    doc.execCommand('bold', false);
+                }
+                if (press.key === 'i') {
+                    press.preventDefault();
+                    doc.execCommand('italic', false);
+                }
+                if (press.key === 'u') {
+                    press.preventDefault();
+                    doc.execCommand('underline', false);
                 }
             }
         });
@@ -364,7 +386,7 @@ if (is_chrome && is_safari) {is_safari = false; }
     $.fn.primeDivs = function () {
         if (!is_firefox) {
             this.html('<div><br></div>');
-        } else { this.html('<p></p>'); }
+        }
     };
 
     // UTILITY: Apply settings with JS objects
@@ -457,6 +479,15 @@ $.fn.refreshImgInteractions = function () {
     });
 };
 
+// Function for creating new Ids
+function newId() {
+    "use strict";
+    var randomized_id, randomized_id_2;
+    randomized_id = Math.random().toString().slice(2);
+    randomized_id_2 = Math.random().toString().slice(2);
+    return randomized_id + "_" + randomized_id_2;
+}
+
 // UTILITY: Create ".upload-image" div
 // Based slightly off of encapsulated 
 // createAndAppendImg() function. Will attempt to replace the encapsulated
@@ -475,12 +506,7 @@ function createAndAppendImgDivs(idGenFunction, img_source_str, css_obj, $target)
     if (idGenFunction !== undefined) {
         genIdFunction = idGenFunction;
     } else {
-        genIdFunction = function () {
-            var randomized_id, randomized_id_2;
-            randomized_id = Math.random().toString().slice(2);
-            randomized_id_2 = Math.random().toString().slice(2);
-            return randomized_id + "_" + randomized_id_2;
-        };
+        genIdFunction = newId;
     }
 
     // Set div and img objects with appropriate attrs and css
@@ -504,6 +530,7 @@ function createAndAppendImgDivs(idGenFunction, img_source_str, css_obj, $target)
     $div_wrapper.append($new_image);
     $target.append($div_wrapper);
 }
+
 
 // UTILITY: returns an object array of the srcs of the uploaded images in a given element
 $.fn.imgSrc = function () {
@@ -529,7 +556,6 @@ $.fn.imgSrc = function () {
         img_id =  $(img_list[img_idx]).parent().attr('id');
         img_top = $(img_list[img_idx]).parent().css('top');
         img_left = $(img_list[img_idx]).parent().css('left');
-
         img_height = $(img_list[img_idx]).parent().css('height');
         img_width = $(img_list[img_idx]).parent().css('width');
 
@@ -581,7 +607,8 @@ $.fn.stringConvHTMLtoJS = function () {
     } else {
         // If Firefox...
         // Take the html of the target element
-        string = this.html();
+        $TARGET = this;
+        string = $TARGET.html();
         // Firefox HACK: 
         // Establish end of string portion at beginning of the first child DIV
         str_end = string.indexOf('<div');
@@ -629,7 +656,8 @@ function stringConvJStoHTML(multiline_str) {
 $.fn.imgTxtHybrid = function (obj_settings) {
     "use strict";
     var BASE_SETTINGS,
-        property;
+        property,
+        img_set;
 
     BASE_SETTINGS = {
         'overflow': 'hidden',
@@ -645,13 +673,16 @@ $.fn.imgTxtHybrid = function (obj_settings) {
 
     RESIZE_OBJECT_SETTINGS = BASE_SETTINGS;
 
-    if (obj_settings !== undefined) {
+    if (obj_settings.imagecss !== undefined) {
         // Catch errors that happen when uploading your own styling
         try {
+            // Set object to base settings
             RESIZE_OBJECT_SETTINGS = BASE_SETTINGS;
-            for (property in obj_settings) {
-                if (obj_settings.hasOwnProperty(property)) {
-                    RESIZE_OBJECT_SETTINGS[property] = obj_settings[property];
+            // get and store user-defined imagecss setting 
+            img_set = obj_settings.imagecss;
+            for (property in img_set) {
+                if (img_set.hasOwnProperty(property)) {
+                    RESIZE_OBJECT_SETTINGS[property] = img_set[property];
                 }
             }
         } catch (error) {
@@ -680,4 +711,5 @@ $.fn.imgTxtHybrid = function (obj_settings) {
     this.primeDivs();
     this.imgEvent();
     this.tabEnable();
+    this.ctrlFormatting();
 };

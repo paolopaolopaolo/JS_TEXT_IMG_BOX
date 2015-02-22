@@ -21,27 +21,41 @@
 			<button id='print_text'>
 				$("#contentEdit").stringConvHTMLtoJS();
 			</button>
-
+		<!--<button id='get_text'>
+				stringConvJStoHTML(&lt;database_&gt;);
+			</button> -->
 			<div id='result' class='resultbox'>
 			</div>
 			<div id='textbox' class='resultbox'>
 			</div>
+{# 			<div id='textbox2' class='resultbox'>
+			</div> #}
 		<div id ='help_display'>
 		</div>
 		
 		<div id='help_text'>
 				<button id='exit_display'>X</button>
-				<h3>imgTxtHybrid.js demo:</h3>
+				<h3>img-txt-hybrid.js demo:</h3>
 				<p>Thank you for checking out this jQuery plugin demo!
 				There are several things you can do while you're here.</p>
 				<ul>
 					<li> <strong>Copy-paste</strong> images 
 					from other websites into the big text-box <strong>OR</strong></li>
 					<li> <strong>Drag-and drop</strong> images from your computer. </li>
-					<li> <strong>Type</strong> out your life story!</li>
+					<li> <strong>Type</strong> out your life story!
+						<ul>
+							<li>Basic formatting is enabled:</li>
+							<li>CTRL + b: bold</li>
+							<li>CTRL + i: italics</li>
+							<li>CTRL + u: underline</li>
+							<li>Only formatting tags get through to the backend unescaped.
+							(Although sanitizing inputs is <b><strong>ALWAYS</b></strong> recommended).</li>
+									
+						</ul>
+					</li>
 					<li> <strong>Click</strong> either of the buttons below the text area 
 					to see what the built-in functions can send to the backend. </li>
-					<li> <strong><a href='https://github.com/paolopaolopaolo/Img-Txt-Hybrid/fork'>Fork</a></strong> this repository for your own nefarious purposes.</li> 
+					<li> <strong><a href='https://github.com/paolopaolopaolo/Img-Txt-Hybrid/'>Fork</a></strong> this repository for your own nefarious purposes.</li> 
 					<li><strong><a href='https://github.com/paolopaolopaolo/Img-Txt-Hybrid/archive/master.zip' download>Download</a></strong> the Javascript file to use on your own dastardly website (includes minified JS file)!</li>
 				</ul>
 			</div>

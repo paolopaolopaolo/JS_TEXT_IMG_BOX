@@ -3,12 +3,10 @@ $(document).ready(function(){
 	// Call imgTxtHybrid on top box, 
 	// passing through desired CSS styling
 	$("#contentEdit").imgTxtHybrid({
-		// 'overflow': 'hidden',
-		// 'position':'absolute',
-		// 'white-space':'pre-wrap',
-		// 'display':'inline-block',
-		'border-radius':'10px',	
-		});
+		"imagecss": {
+			'border-radius':'10px',
+		}	
+	});
 
 	// Add click listener to #print_data button, which will print the
 	// JS object data on all the images in the top box 
