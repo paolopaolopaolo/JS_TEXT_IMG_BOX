@@ -13,8 +13,10 @@ button {
 }
 
 h1 {
-	text-align: center;
+	text-align: left;
 	color: white;
+	position: relative;
+	left: 9%;
 }
 
 ul li ul {
