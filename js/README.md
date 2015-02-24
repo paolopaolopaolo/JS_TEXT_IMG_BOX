@@ -19,25 +19,26 @@
 ```
    <!DOCTYPE html> 
    <html>
-   		<head>
-   			<link href='./css/style.css' rel='stylesheet' type='text/css'/>
-				<link href='./css/jquery-ui.min.css' rel='stylesheet' type='text/css'/>
-				<script src='./js/jquery-1.11.1.min.js' type='text/javascript'>
-				</script>
-				<script src='./js/jquery-ui-1.11.2.custom/jquery-ui.min.js'type='text/javascript'>
-				</script>
-				<script src="./js/img-txt-hybrid.js" type='text/javascript'></script>
-				<script>
-					  $('#editBox').imgTxtHybrid();
-				</script>
-   		</head>
-   		<body>
-   			<div id='editBox' style='width:400px; height:300px; border: 1px dotted blue'>
-   			</div>
-   		</body>
+      <head>
+        <link href='./css/style.css' rel='stylesheet' type='text/css'/>
+        <link href='./css/jquery-ui.min.css' rel='stylesheet' type='text/css'/>
+        <script src='./js/jquery-1.11.1.min.js' type='text/javascript'>
+        </script>
+        <script src='./js/jquery-ui-1.11.2.custom/jquery-ui.min.js'type='text/javascript'>
+        </script>
+        <script src="./js/img-txt-hybrid.js" type='text/javascript'></script>
+        <script>
+            $('#editBox').imgTxtHybrid();
+        </script>
+      </head>
+      <body>
+        <div id='editBox' style='width:400px; height:300px; border: 1px dotted blue'>
+        </div>
+      </body>
    </html> 
 ```
-######CURRENT FEATURES:
+
+#####CURRENT FEATURES:
 * Support for copy-pasting images from the Web
 * "         " drag-and-dropping images from local file folders
 * Image interactivity (images can be dragged, resized, and deleted)
@@ -47,10 +48,10 @@
 * $(<ELEMENT>).imgTxtHybrid(settings) : 
   Turns element into a image-friendly content-editable text box. 
 
-  ** settings:
+  * settings:
   A JSON object that is a set of key-value pairs that can customize aspects of the target element.
 
-    *** settings.imagecss:
+    * settings.imagecss:
     Developers can customize the style of uploaded images by inputing their own CSS preferences. Set imagecss property in settings to an Object containing CSS property-
     value pairs. 
     (Note: it is not recommended to have "position" or "display" as properties 
@@ -62,16 +63,16 @@
   function to the backend, pass this function call into a serializer (ie JSON.stringify) 
   first]. 
 
-  ** IMG.id:
+  * IMG.id:
     Random numerical id that is assigned to the IMG as it is uploaded on the text box.
   
-  ** IMG.top, IMG.left:
+  * IMG.top, IMG.left:
      Position of the image within the text box (in px)
   
-  ** IMG.height, IMG.width:
+  * IMG.height, IMG.width:
      Size of the image (in px)
   
-  ** IMG.data: 
+  * IMG.data: 
      If the image was uploaded from your hard-drive, it will be a base-64 encoded string carrying
      the image data. If copy pasted from another source online, it will be the URL of that image file.
 
@@ -81,20 +82,19 @@
 * stringConvHTMLtoJS(string):
   Takes JS strings and converts it into the appropriate HTML [Note: this function is NOT a jQuery function, just a regular JS function].
 
-* createAndAppendImgDivs(getIDFunction, image_source_string, css_object, $target):
+* createAndAppendImgDivs(getIDFunction, imageSrcStr, css_object, $target):
   Takes the following attributes and re-renders interactive images onto the content box.
 
-  ** getIDFunction:
+  * getIDFunction:
     a Javascript function that will either load the element id or generate a new one.
     Generates a new id by default
 
-  ** image_source_string:
+  * imageSourceStr:
     a string that indicates either the base64 or the URL source of the image
 
-  ** css_object:
+  * cssobject:
     a JSON object that is a set of key-value pairs for CSS properties (including top, left,
     height and width).
 
-  ** $target:
+  * $target:
      a jQuery object (preferably with the same selector that imgTxtHybrid() is called on). 
-

@@ -244,55 +244,88 @@ if (is_chrome && is_safari) {is_safari = false; }
         var imgsrc,
             source,
             result,
-            plaintext;
+            plaintext,
+            img_format,
+            base64_format,
+            htmlfrag_format;
+
+        // Set pattern for image file
+        img_format = /[^\.\\\/?<>:*|"']*\.(jpg|jpeg|gif|png|bmp|tiff)*/gi;
+        base64_format = /data:image\/[\w]+;base64,[^,\:\"]+/gi;
+        htmlfrag_format = /<!--StartFragment-->(<img[^>]*>)<!--EndFragment-->/;
+
         // prevents default pasting
         event.preventDefault();
-        // alert(event.originalEvent.clipboardData.getData('text/html'));
 
-        if (is_explorer) {
+        if (win.clipboardData) {
             // IE
             // Get the URL from pasted data
             source = win.clipboardData.getData('URL');
+            // Construct img tag with sourceURL
             imgsrc = "<img src='" + source + "'/>";
             plaintext = win.clipboardData.getData('text');
+            // Check to see if source is empty string or undefined
             if (source === "" || source === undefined) {
                 result = plaintext;
-            } else { result = imgsrc; }
-        } else if (!is_explorer) {
+            } else { // If not, test the source for an image format
+                if (img_format.test(source)) {
+                    // If there's an image, set result to imgsrc
+                    result = imgsrc;
+                } else { //If not, set result to plaintext
+                    result = plaintext;
+                }
+            }
+        } else if (event.originalEvent.clipboardData) {
             // Chrome & Safari & Firefox
             // Get text/html data from clipboard
             source = event.originalEvent.clipboardData.getData('text/html');
             // ALSO create a plaintext variable that has text/plain clipboard data
             plaintext = event.originalEvent.clipboardData.getData('text/plain');
             // alert("source: " + source + "\n" +
-            // "plaintext: " + plaintext);
+            //       "plaintext: " + plaintext);
 
             // Chrome and Safari
             // See if there's a regex match for imgs
             if (is_chrome || is_safari) {
-                imgsrc = source.match(/<!--StartFragment-->(.*)<!--EndFragment-->/);
-                // If there's a match, use the matched string as a result
-                if (imgsrc !== null) { result = imgsrc[1]; }
-            } else {
-                // Firefox
-                imgsrc = source;
-                result = imgsrc;
-            }
-
-            // If there's no match...
-            if (source === "" || result === undefined) {
-                // Check plaintext. If there's no plain
-                if (plaintext === "") {
-                    alert("Try dragging and dropping the image!");
-                    plaintext = "";
+                imgsrc = source.match(htmlfrag_format);
+                // If there's a match, inspect imgsrc for an image file
+                if (imgsrc !== null) {
+                    // If imgsrc has a match for imgs, make imgsrc[1] the result
+                    if (img_format.test(imgsrc[1]) || base64_format.test(imgsrc[1])) {
+                        // alert('img passed');
+                        result = imgsrc[1];
+                    } else {// if not, set result to plaintext
+                        result = plaintext;
+                    }
+                } else {
+                    result = plaintext;
                 }
-                result = plaintext;
+            } else {
+                // Firefox: the source should be an img tag
+                imgsrc = source;
+                // Test imgsrc for images
+                if (img_format.test(imgsrc) || base64_format.test(imgsrc)) {
+                    result = imgsrc;
+                } else {// if none, set result to plaintext
+                    result = plaintext;
+                }
             }
         }
 
+        // If there's no source and result is as of yet  undefined...
+        if (source === "" || result === undefined) {
+            // Check plaintext. If there's no plaintext, it might be
+            // a copypaste attempt from the hard drive
+            if (plaintext === "") {
+                alert("Try dragging and dropping the image!");
+                plaintext = "";
+            }
+            result = plaintext;
+        }
 
+        // If we're looking at an img tag from the internet
         if (result.indexOf("<img") > -1) {
-            // If we're looking at an img tag from the internet
+            // Create and append the image
             createAndAppendImage(result,
                       undefined,
                       $TARGET,
@@ -301,7 +334,11 @@ if (is_chrome && is_safari) {is_safari = false; }
         } else {
             // If we're looking at regular text
             try {
-                win.document.execCommand('insertText', false, result);
+                if (win.document.execCommand) {
+                    win.document.execCommand('insertText', false, result);
+                } else if (doc.execCommand) {
+                    doc.execCommand('insertText', false, result);
+                }
             } catch (ignore) { }
         }
         // DEBUG AIDE 
@@ -314,12 +351,12 @@ if (is_chrome && is_safari) {is_safari = false; }
         var $TARGET = this;
         // Sets the ondrop event
         $TARGET.on('drop', function (event) {
-            fileDropHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
+            fileDropHandler(event, $TARGET);
         });
 
         // Sets the onpaste event
         $TARGET.on('paste', function (event) {
-            filePasteHandler(event, $TARGET, RESIZE_OBJECT_SETTINGS, IMG_SETTINGS);
+            filePasteHandler(event, $TARGET);
         });
     };
 
@@ -377,7 +414,9 @@ if (is_chrome && is_safari) {is_safari = false; }
         // resizing se-icon problem
         if (is_chrome) {
             this.find('.ui-icon-gripsmall-diagonal-se').attr({
-                'class': 'ui-resizable-handle ui-resizable-se ui-icon-gripsmall-diagonal-se'
+                'class': ['ui-resizable-handle ui-res',
+                          'izable-se ui-icon-gripsmal',
+                          'l-diagonal-se'].join('')
             });
         }
     };
@@ -387,6 +426,54 @@ if (is_chrome && is_safari) {is_safari = false; }
         if (!is_firefox) {
             this.html('<div><br></div>');
         }
+    };
+
+    // Takes copy data and makes it text only
+    $.fn.setCopyData = function () {
+        var currentSel, seln, rang;
+        // SELECT ALL EVENT
+        this.on("keydown", function (event) {
+            if (event.ctrlKey || (event.which === 17)) {
+                if (event.key === 'a' || event.which === 65) {
+                    event.preventDefault();
+                    if (doc.createRange) {
+                        rang = doc.createRange();
+                        rang.selectNode(this);
+                        seln = win.getSelection();
+                        seln.removeAllRanges();
+                        seln.addRange(rang);
+                    } else if (doc.execCommand) {
+                        doc.execCommand('selectAll', true, null);
+                    } else if (win.document.execCommand) {
+                        win.document.execCommand('selectAll', true, null);
+                    }
+                }
+            }
+        });
+
+        // COPY EVENT
+        this.on("copy", function (event) {
+            // Override default behavior
+            event.preventDefault();
+            // Alert for DEBUG
+            // alert('copy');
+
+            // get and set selection based on features
+            if (win.getSelection) {
+                currentSel = win.getSelection().toString();
+            } else if (doc.selection) {
+                currentSel = doc.selection.createRange();
+            }
+
+            // Set data to text
+            if (win.clipboardData) {// IE
+                win.clipboardData.setData("Text", currentSel);
+            } else if (event.originalEvent.clipboardData) { // errthing else
+                event.originalEvent.clipboardData.setData("text/plain", currentSel);
+            }
+            doc.execCommand('copy');
+        });
+
     };
 
     // UTILITY: Apply settings with JS objects
@@ -703,7 +790,8 @@ $.fn.imgTxtHybrid = function (obj_settings) {
     // Force this element to be relative and have overflow:auto
     this.css({
         'position': 'relative',
-        'overflow': 'auto'
+        'overflow': 'auto',
+        'white-space': 'pre-wrap'
     });
 
     // Run the encapsulated functions
@@ -712,4 +800,5 @@ $.fn.imgTxtHybrid = function (obj_settings) {
     this.imgEvent();
     this.tabEnable();
     this.ctrlFormatting();
+    this.setCopyData();
 };
