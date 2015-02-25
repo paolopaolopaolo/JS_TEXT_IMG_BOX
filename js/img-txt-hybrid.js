@@ -430,19 +430,13 @@ if (is_chrome && is_safari) {is_safari = false; }
 
     // Takes copy data and makes it text only
     $.fn.setCopyData = function () {
-        var currentSel, seln, rang;
+        var currentSel;
         // SELECT ALL EVENT
         this.on("keydown", function (event) {
             if (event.ctrlKey || (event.which === 17)) {
                 if (event.key === 'a' || event.which === 65) {
                     event.preventDefault();
-                    if (doc.createRange) {
-                        rang = doc.createRange();
-                        rang.selectNode(this);
-                        seln = win.getSelection();
-                        seln.removeAllRanges();
-                        seln.addRange(rang);
-                    } else if (doc.execCommand) {
+                    if (doc.execCommand) {
                         doc.execCommand('selectAll', true, null);
                     } else if (win.document.execCommand) {
                         win.document.execCommand('selectAll', true, null);
